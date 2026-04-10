@@ -64,6 +64,43 @@ const Navigation = () => {
   );
 };
 
+const FooterInfoSection = () => {
+  const { pathname } = useLocation();
+  if (pathname !== '/') return null;
+  
+  return (
+    <section className="info-section" id="about">
+      <div className="footer-grid">
+        <div className="footer-card">
+          <div className="footer-card-icon">📦</div>
+          <h3 className="footer-card-title">About</h3>
+          <p className="footer-card-text">
+            funcBox is the culmination of rewriting repeated algorithmic logic. Engineered to be a native,
+            zero-dependency, ultra-fast foundational utility library for Python and Java projects worldwide.
+          </p>
+        </div>
+        <div className="footer-card" id="contact">
+          <div className="footer-card-icon">✉️</div>
+          <h3 className="footer-card-title">Contact Us</h3>
+          <p className="footer-card-text">
+            Have ideas or want to contribute? Reach out via our standard channels.
+          </p>
+          <div className="footer-card-links">
+            <a href="mailto:funcboxi3@gmail.com" className="footer-link-row">
+              <span className="footer-link-label">Email</span>
+              <span className="footer-link-value">funcboxi3@gmail.com</span>
+            </a>
+            <a href="https://github.com/funcBox-i3/" target="_blank" rel="noreferrer" className="footer-link-row">
+              <span className="footer-link-label">GitHub</span>
+              <span className="footer-link-value">github.com/funcBox-i3 ↗</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 export default function App() {
   const { scrollYProgress } = useScroll();
 
@@ -90,35 +127,7 @@ export default function App() {
           <Route path="/java" element={<JavaDocs />} />
         </Routes>
 
-        <section className="info-section" id="about">
-          <div className="footer-grid">
-            <div className="footer-card">
-              <div className="footer-card-icon">📦</div>
-              <h3 className="footer-card-title">About</h3>
-              <p className="footer-card-text">
-                funcBox is the culmination of rewriting repeated algorithmic logic. Engineered to be a native,
-                zero-dependency, ultra-fast foundational utility library for Python and Java projects worldwide.
-              </p>
-            </div>
-            <div className="footer-card" id="contact">
-              <div className="footer-card-icon">✉️</div>
-              <h3 className="footer-card-title">Contact Us</h3>
-              <p className="footer-card-text">
-                Have ideas or want to contribute? Reach out via our standard channels.
-              </p>
-              <div className="footer-card-links">
-                <a href="mailto:funcboxi3@gmail.com" className="footer-link-row">
-                  <span className="footer-link-label">Email</span>
-                  <span className="footer-link-value">funcboxi3@gmail.com</span>
-                </a>
-                <a href="https://github.com/funcBox-i3/" target="_blank" rel="noreferrer" className="footer-link-row">
-                  <span className="footer-link-label">GitHub</span>
-                  <span className="footer-link-value">github.com/funcBox-i3 ↗</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
+        <FooterInfoSection />
 
         <footer className="footer-container">
           <p className="footer-bottom">

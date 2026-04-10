@@ -36,35 +36,18 @@ const CodeBlock = ({ code, language = 'python' }) => {
   );
 };
 
-const STATUS_COLORS = {
-  Published: { bg: 'rgba(74,222,128,0.12)', border: 'rgba(74,222,128,0.35)', text: '#7eeab0' },
-  Beta:      { bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.35)', text: '#fcd34d' },
-};
-
-const FunctionBlock = React.memo(({ name, signature, description, params, returnInfo, raises, example, status, index }) => {
-  const s = STATUS_COLORS[status] || STATUS_COLORS.Published;
+const FunctionBlock = React.memo(({ name, signature, description, params, returnInfo, raises, example, index }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 32 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.35, delay: Math.min(index * 0.04, 0.2) }}
+      viewport={{ once: true, margin: '-20px' }}
+      transition={{ type: 'spring', damping: 30, stiffness: 90, delay: Math.min(index * 0.04, 0.2) }}
       className="func-block"
       id={name.replace(/\./g, '-')}
     >
       <div className="func-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <h3 style={{ margin: 0 }}>{name}</h3>
-          {status && (
-            <span style={{
-              fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em',
-              padding: '3px 10px', borderRadius: '100px', textTransform: 'uppercase',
-              background: s.bg, border: `1px solid ${s.border}`, color: s.text,
-            }}>
-              {status}
-            </span>
-          )}
-        </div>
+        <h3 style={{ margin: 0 }}>{name}</h3>
         <div className="func-badge-container">
           <span className="type-badge">{signature}</span>
         </div>
@@ -562,13 +545,19 @@ const PythonDocs = () => {
 
   return (
     <div style={{ position: 'relative', width: '100%', minHeight: '100vh' }}>
-      {/* Subtle Python watermark */}
-      <div style={{
-        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-        zIndex: 0, opacity: 0.05, pointerEvents: 'none',
-        backgroundImage: 'url(/python_bg.png)', backgroundSize: 'cover',
-        backgroundPosition: 'center', mixBlendMode: 'screen',
-      }} />
+      {/* Adaptive Background for Python */}
+      <div 
+        style={{
+          position: 'fixed',
+          top: 0, left: 0, width: '100vw', height: '100vh',
+          zIndex: 0, opacity: 0.1, pointerEvents: 'none',
+          backgroundImage: 'url(/python_bg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+          mixBlendMode: 'screen'
+        }} 
+      />
 
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -662,9 +651,6 @@ d("user.name")
 d(["user.name", "user.handle", "user.age"])
 # ['Aditya Prasad S', 'Pu94X', 22]`
             } />
-            <p style={{ marginTop: '12px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-              ⚠ Functions marked <strong style={{ color: '#fcd34d' }}>Beta</strong> are under active development — their API may change before stable release. Do not rely on them in production.
-            </p>
           </section>
 
           {CATEGORIES.map(cat => {

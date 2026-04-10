@@ -32,10 +32,10 @@ const CodeBlock = ({ code, language }) => {
 
 const FunctionBlock = React.memo(({ name, signature, description, params, returnInfo, example, index, isJava }) => (
   <motion.div
-    initial={{ opacity: 0, y: 24 }}
+    initial={{ opacity: 0, y: 32 }}
     whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: '-80px' }}
-    transition={{ duration: 0.35, delay: index * 0.04 }}
+    viewport={{ once: true, margin: '-20px' }}
+    transition={{ type: 'spring', damping: 30, stiffness: 90, delay: index * 0.04 }}
     className="func-block"
     id={name.replace(/\./g, '-')}
   >
@@ -90,18 +90,184 @@ const javaPackages = [
     description: 'Mathematics & String Utilities',
     icon: '🧮',
     functions: [
-      { name: 'Misc.isPrime', signature: 'boolean Misc.isPrime(int num)', description: 'Checks whether a given number is prime.', params: [{ name: 'num', type: 'int', desc: 'The number to check.' }], returnInfo: { type: 'boolean', desc: 'true if prime, false otherwise.' }, example: 'Misc.isPrime(7);   // true\nMisc.isPrime(10);  // false' },
-      { name: 'Misc.primes', signature: 'List<Integer> Misc.primes(int start, int limit)', description: 'Generates all prime numbers within a given range.', params: [{ name: 'start', type: 'int', desc: 'Lower bound.' }, { name: 'limit', type: 'int', desc: 'Upper bound.' }], returnInfo: { type: 'List<Integer>', desc: 'List of primes.' }, example: 'Misc.primes(2, 10);   // [2, 3, 5, 7]' },
-      { name: 'Misc.fibonacci', signature: 'long Misc.fibonacci(int num)', description: 'Calculates the Fibonacci number at the specified index.', params: [{ name: 'num', type: 'int', desc: 'The index in the sequence.' }], returnInfo: { type: 'long', desc: 'The Fibonacci value.' }, example: 'Misc.fibonacci(10);  // 55' },
-      { name: 'Misc.getFactors', signature: 'String Misc.getFactors(int num)', description: 'Returns all factors of a number, excluding the number itself.', params: [{ name: 'num', type: 'int', desc: 'The number.' }], returnInfo: { type: 'String', desc: 'String representation of factor list.' }, example: 'Misc.getFactors(12);  // [1, 2, 3, 4, 6]' },
-      { name: 'Misc.isPalindrome', signature: 'boolean Misc.isPalindrome(String val)', description: 'Checks whether a string reads the same forward and backward.', params: [{ name: 'val', type: 'String', desc: 'String to evaluate.' }], returnInfo: { type: 'boolean', desc: 'true if palindrome' }, example: 'Misc.isPalindrome("Racecar");  // true' },
-      { name: 'Misc.isAnagram', signature: 'boolean Misc.isAnagram(String str1, String str2, boolean caseSensitive)', description: 'Determines whether two strings are anagrams of each other.', params: [{ name: 'str1', type: 'String', desc: 'First string' }, { name: 'str2', type: 'String', desc: 'Second string' }, { name: 'caseSensitive', type: 'boolean', desc: 'Enable case sensitivity' }], returnInfo: { type: 'boolean', desc: 'true if anagrams' }, example: 'Misc.isAnagram("Listen", "Silent", false); // true' },
-      { name: 'Misc.capitalizeEachWord', signature: 'String Misc.capitalizeEachWord(String str)', description: 'Capitalizes the first character of each word in a string.', params: [{ name: 'str', type: 'String', desc: 'The input string' }], returnInfo: { type: 'String', desc: 'Capitalized string' }, example: 'Misc.capitalizeEachWord("hello world"); // "Hello World"' },
-      { name: 'Misc.truncate', signature: 'String Misc.truncate(String text, int maxLength)', description: 'Truncates a string to a maximum length.', params: [{ name: 'text', type: 'String', desc: 'Input text' }, { name: 'maxLength', type: 'int', desc: 'Max allowed length' }], returnInfo: { type: 'String', desc: 'Truncated string' }, example: 'Misc.truncate("abcdefghijklmnop", 10); // "abcdefghij"' },
-      { name: 'Misc.clamp', signature: 'int Misc.clamp(long value, int min, int max)', description: 'Clamps a value to the inclusive range.', params: [{ name: 'value', type: 'long', desc: 'Value to clamp' }, { name: 'min', type: 'int', desc: 'Min allowed' }, { name: 'max', type: 'int', desc: 'Max allowed' }], returnInfo: { type: 'int', desc: 'Clamped value' }, example: 'Misc.clamp(150L, 0, 100); // 100' },
-      { name: 'Misc.splitPrimeComposite', signature: 'List<List<Integer>> Misc.splitPrimeComposite(List<Integer> numbers)', description: 'Partitions a list of integers into two sublists — primes and composites.', params: [{ name: 'numbers', type: 'List<Integer>', desc: 'List to partition' }], returnInfo: { type: 'List<List<Integer>>', desc: '[Primes, Composites]' }, example: 'Misc.splitPrimeComposite(List.of(2, 4)); // [[2], [4]]' },
-      { name: 'Misc.levenshteinDistance', signature: 'int Misc.levenshteinDistance(String str1, String str2)', description: 'Calculates the Levenshtein distance (edit distance) between two strings.', params: [{ name: 'str1', type: 'String', desc: 'First string' }, { name: 'str2', type: 'String', desc: 'Second string' }], returnInfo: { type: 'int', desc: 'Edit distance' }, example: 'Misc.levenshteinDistance("hello", "holl"); // 2' },
-      { name: 'Misc.fuzzyMatchScore', signature: 'double Misc.fuzzyMatchScore(String str1, String str2)', description: 'Calculates a normalized fuzzy match score between two strings.', params: [{ name: 'str1', type: 'String', desc: 'First string' }, { name: 'str2', type: 'String', desc: 'Second string' }], returnInfo: { type: 'double', desc: 'Score between 0.0 and 1.0' }, example: 'Misc.fuzzyMatchScore("hello", "hallo"); // 0.8' }
+      {
+        name: 'Misc.isPrime',
+        signature: 'boolean Misc.isPrime(int num)',
+        description: 'Checks whether a given integer is a prime number.',
+        params: [{ name: 'num', type: 'int', desc: 'The number to check.' }],
+        returnInfo: { type: 'boolean', desc: 'true if the number is prime, false otherwise.' },
+        example: `Misc.isPrime(2);   // true
+Misc.isPrime(7);   // true
+Misc.isPrime(1);   // false
+Misc.isPrime(10);  // false
+Misc.isPrime(97);  // true`
+      },
+      {
+        name: 'Misc.primes',
+        signature: 'List<Integer> Misc.primes(int start, int limit)',
+        description: 'Generates all prime numbers in the range [start, limit] using the Sieve of Eratosthenes algorithm.',
+        params: [{ name: 'start', type: 'int', desc: 'Lower bound. Must be ≥ 2.' }, { name: 'limit', type: 'int', desc: 'Upper bound. Must be ≥ 2.' }],
+        returnInfo: { type: 'List<Integer>', desc: 'Containing all prime numbers in the given range.' },
+        example: `Misc.primes(2, 10);   // [2, 3, 5, 7]
+Misc.primes(10, 30);  // [11, 13, 17, 19, 23, 29]
+Misc.primes(2, 2);    // [2]`
+      },
+      {
+        name: 'Misc.fibonacci',
+        signature: 'long Misc.fibonacci(int num)',
+        description: 'Returns the Fibonacci number at the given index (0..92) using an iterative approach.',
+        params: [{ name: 'num', type: 'int', desc: 'The index in the Fibonacci sequence.' }],
+        returnInfo: { type: 'long', desc: 'The Fibonacci value at position num.' },
+        example: `Misc.fibonacci(0);   // 0
+Misc.fibonacci(1);   // 1
+Misc.fibonacci(10);  // 55
+Misc.fibonacci(50);  // 12586269025
+Misc.fibonacci(92);  // 7540113804746346429`
+      },
+      {
+        name: 'Misc.getFactors',
+        signature: 'String Misc.getFactors(int num)',
+        description: 'Returns all factors of the given number, including 1 but excluding the number itself.',
+        params: [{ name: 'num', type: 'int', desc: 'The number to factorize.' }],
+        returnInfo: { type: 'String', desc: 'String representation of the factor list.' },
+        example: `Misc.getFactors(12);  // [1, 2, 3, 4, 6]
+Misc.getFactors(28);  // [1, 2, 4, 7, 14]
+Misc.getFactors(7);   // [1]        (7 is prime)
+Misc.getFactors(1);   // [1]
+Misc.getFactors(100); // [1, 2, 4, 5, 10, 20, 25, 50]`
+      },
+      {
+        name: 'Misc.isPalindrome',
+        signature: 'boolean Misc.isPalindrome(String val)',
+        description: 'Checks whether a string is a valid palindrome using a two-pointer approach, ignoring non-alphanumeric characters and casing.',
+        params: [{ name: 'val', type: 'String', desc: 'The string to evaluate.' }],
+        returnInfo: { type: 'boolean', desc: 'true if the string is a palindrome.' },
+        example: `Misc.isPalindrome("racecar");                           // true
+Misc.isPalindrome("A man, a plan, a canal: Panama");   // true (spaces/punctuation ignored)
+Misc.isPalindrome("hello");                            // false
+Misc.isPalindrome("12321");                            // true
+Misc.isPalindrome(null);                               // false`
+      },
+      {
+        name: 'Misc.isAnagram',
+        signature: 'boolean Misc.isAnagram(String str1, String str2, boolean caseSensitive)',
+        description: 'Determines whether two strings are anagrams of each other. Whitespace is always ignored.',
+        params: [{ name: 'str1', type: 'String', desc: 'The first string.' }, { name: 'str2', type: 'String', desc: 'The second string.' }, { name: 'caseSensitive', type: 'boolean', desc: 'true for case-sensitive.' }],
+        returnInfo: { type: 'boolean', desc: 'true if the strings are anagrams, false otherwise.' },
+        example: `// Case-insensitive (default behavior)
+Misc.isAnagram("Listen", "Silent", false);           // true
+Misc.isAnagram("Triangle", "Integral", false);       // true
+Misc.isAnagram("Hello", "World", false);             // false
+
+// Case-sensitive
+Misc.isAnagram("Listen", "silent", true);            // false  ('L' != 'l')
+Misc.isAnagram("listen", "silent", true);            // true
+
+// Whitespace is always ignored
+Misc.isAnagram("a b c", "cba", false);               // true
+Misc.isAnagram("rail safety", "fairy tales", false); // true
+
+// Null / empty handling
+Misc.isAnagram(null, "test", false);                 // false
+Misc.isAnagram("", "", false);                       // false`
+      },
+      {
+        name: 'Misc.splitPrimeComposite',
+        signature: 'List<List<Integer>> Misc.splitPrimeComposite(List<Integer> numbers)',
+        description: 'Partitions a list of integers into two sublists — primes and composites.',
+        params: [{ name: 'numbers', type: 'List<Integer>', desc: 'The list of integers to partition.' }],
+        returnInfo: { type: 'List<List<Integer>>', desc: 'Index 0: Primes, Index 1: Composites' },
+        example: `List<Integer> nums = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+List<List<Integer>> result = Misc.splitPrimeComposite(nums);
+
+result.get(0);  // [2, 3, 5, 7]       — Primes
+result.get(1);  // [4, 6, 8, 9, 10]   — Composites
+// Note: 1 is excluded as it is neither prime nor composite
+
+// Another example
+List<Integer> mixed = List.of(13, 15, 17, 18, 19, 20, 23);
+List<List<Integer>> split = Misc.splitPrimeComposite(mixed);
+
+split.get(0);  // [13, 17, 19, 23]  — Primes
+split.get(1);  // [15, 18, 20]      — Composites`
+      },
+      {
+        name: 'Misc.capitalizeEachWord',
+        signature: 'String Misc.capitalizeEachWord(String str)',
+        description: 'Capitalizes the first character of each word in a string. Whitespace is normalized to single spaces.',
+        params: [{ name: 'str', type: 'String', desc: 'The input string to capitalize.' }],
+        returnInfo: { type: 'String', desc: 'The capitalized string.' },
+        example: `Misc.capitalizeEachWord("hello world");              // "Hello World"
+Misc.capitalizeEachWord("a");                        // "A"
+Misc.capitalizeEachWord("hello  WORLD");             // "Hello World"  (multiple spaces collapsed)
+Misc.capitalizeEachWord("hello\\tWORLD");             // "Hello World"  (tabs normalized)
+Misc.capitalizeEachWord("123 abc");                  // "123 Abc"
+Misc.capitalizeEachWord(null);                       // ""
+Misc.capitalizeEachWord("   ");                      // ""  (whitespace-only)`
+      },
+      {
+        name: 'Misc.truncate',
+        signature: 'String Misc.truncate(String text, int maxLength)',
+        description: 'Truncates a string to a maximum length.',
+        params: [{ name: 'text', type: 'String', desc: 'The input text.' }, { name: 'maxLength', type: 'int', desc: 'The maximum allowed length.' }],
+        returnInfo: { type: 'String', desc: 'The truncated or original string.' },
+        example: `Misc.truncate("abcdefghijklmnop", 10);   // "abcdefghij"
+Misc.truncate("hello", 10);               // "hello"  (already shorter)
+Misc.truncate(null, 5);                   // ""
+Misc.truncate("test", -1);                // throws IllegalArgumentException`
+      },
+      {
+        name: 'Misc.clamp',
+        signature: 'int Misc.clamp(long value, int min, int max)',
+        description: 'Clamps a value to the inclusive range [min, max].',
+        params: [{ name: 'value', type: 'long', desc: 'The value to clamp.' }, { name: 'min', type: 'int', desc: 'The minimum allowed value.' }, { name: 'max', type: 'int', desc: 'The maximum allowed value.' }],
+        returnInfo: { type: 'int', desc: 'The clamped value.' },
+        example: `Misc.clamp(150L, 0, 100);   // 100  (clamped to max)
+Misc.clamp(-10L, 0, 100);   // 0    (clamped to min)
+Misc.clamp(50L, 0, 100);    // 50   (within range)
+Misc.clamp(100, 100, 100);  // 100  (exact boundary)`
+      },
+      {
+        name: 'Misc.levenshteinDistance',
+        signature: 'int Misc.levenshteinDistance(String str1, String str2)\nint[] Misc.levenshteinDistance(String target, String[] candidates)',
+        description: 'Calculates the Levenshtein distance (minimum number of edits) between strings. A distance of 0 means identical.',
+        params: [{ name: 'str1 / target', type: 'String', desc: 'First string to compare.' }, { name: 'str2 / candidates', type: 'String / String[]', desc: 'Second string or array of candidates.' }],
+        returnInfo: { type: 'int / int[]', desc: 'Edit distance or array of distances.' },
+        example: `// Single comparison
+Misc.levenshteinDistance("hello", "hello");  // 0 (identical)
+Misc.levenshteinDistance("hello", "holl");   // 2 (1 substitution, 1 deletion)
+Misc.levenshteinDistance("abc", "xyz");      // 3 (completely different)
+Misc.levenshteinDistance("hello", null);     // 5 (null treated as empty)
+
+// Multiple candidates
+int[] distances = Misc.levenshteinDistance("hello", new String[]{
+    "heat",   // 3 edits
+    "help",   // 2 edits
+    "groot",  // 5 edits
+    "hell"    // 1 edit
+});
+// Result: [3, 2, 5, 1]`
+      },
+      {
+        name: 'Misc.fuzzyMatchScore',
+        signature: 'double Misc.fuzzyMatchScore(String str1, String str2)\ndouble[] Misc.fuzzyMatchScore(String target, String[] candidates)',
+        description: 'Calculates a normalized fuzzy match score based on Levenshtein distance. 1.0 means exact match, 0.0 means completely different.',
+        params: [{ name: 'str1 / target', type: 'String', desc: 'First string to compare.' }, { name: 'str2 / candidates', type: 'String / String[]', desc: 'Second string or array of candidates.' }],
+        returnInfo: { type: 'double / double[]', desc: 'Score between 0.0 and 1.0.' },
+        example: `// Single comparison
+Misc.fuzzyMatchScore("hello", "hello");  // 1.0 (exact match)
+Misc.fuzzyMatchScore("hello", "hallo");  // 0.8 (very similar)
+Misc.fuzzyMatchScore("hello", "xyz");    // 0.0 (completely different)
+
+// Multiple candidates
+double[] scores = Misc.fuzzyMatchScore("hello", new String[]{
+    "hebdfat",  // 0.286
+    "helgp",    // 0.6
+    "groot",    // 0.0
+    "hell"      // 0.8
+});
+// Result: [0.286, 0.6, 0.0, 0.8]`
+      }
     ]
   },
   {
@@ -110,9 +276,36 @@ const javaPackages = [
     description: 'File & Resource Utilities',
     icon: '📁',
     functions: [
-      { name: 'FileUtil.loadResource', signature: 'String FileUtil.loadResource(String path)', description: 'Load a UTF-8 text resource from src/main/resources.', params: [{ name: 'path', type: 'String', desc: 'Resource path' }], returnInfo: { type: 'String', desc: 'Resource content' }, example: 'FileUtil.loadResource("demo.txt");' },
-      { name: 'FileUtil.safeWrite', signature: 'void FileUtil.safeWrite(Path path, String content)', description: 'Atomic write using temp-file + backup + rollback.', params: [{ name: 'path', type: 'Path', desc: 'File path' }, { name: 'content', type: 'String', desc: 'Content' }], returnInfo: { type: 'void', desc: 'None' }, example: 'FileUtil.safeWrite(Path.of("out.txt"), "hello");' },
-      { name: 'FileUtil.getMimeType', signature: 'String FileUtil.getMimeType(File file)', description: 'Best-effort MIME detection.', params: [{ name: 'file', type: 'File', desc: 'File to check' }], returnInfo: { type: 'String', desc: 'MIME type' }, example: 'FileUtil.getMimeType(new File("img.png")); // "image/png"' }
+      {
+        name: 'FileUtil.loadResource',
+        signature: 'String FileUtil.loadResource(String path)',
+        description: 'Load a UTF-8 text resource from src/main/resources (JAR-safe).',
+        params: [{ name: 'path', type: 'String', desc: 'Resource path' }],
+        returnInfo: { type: 'String', desc: 'Resource content' },
+        example: `// 1) Loading a resource (inside JAR or in IDE)
+String text = FileUtil.loadResource("funcbox_io_demo.txt");
+System.out.println(text);`
+      },
+      {
+        name: 'FileUtil.safeWrite',
+        signature: 'void FileUtil.safeWrite(Path path, String content)',
+        description: 'Atomic write using temp-file + backup + rollback.',
+        params: [{ name: 'path', type: 'Path', desc: 'File path' }, { name: 'content', type: 'String', desc: 'Content' }],
+        returnInfo: { type: 'void', desc: 'None' },
+        example: `// 2) Safe write with backup
+Path out = Path.of("output.txt");
+FileUtil.safeWrite(out, "hello\\n");`
+      },
+      {
+        name: 'FileUtil.getMimeType',
+        signature: 'String FileUtil.getMimeType(File file)',
+        description: 'Best-effort MIME detection (extension-free). Returns application/octet-stream when unknown.',
+        params: [{ name: 'file', type: 'File', desc: 'File to check' }],
+        returnInfo: { type: 'String', desc: 'MIME type' },
+        example: `// 3) MIME detection
+String mime = FileUtil.getMimeType(out.toFile());
+System.out.println(mime);`
+      }
     ]
   },
   {
@@ -121,11 +314,126 @@ const javaPackages = [
     description: 'Safe JSON Navigation',
     icon: '🧭',
     functions: [
-      { name: 'Dig.of', signature: 'DigContext Dig.of(String json)', description: 'Creates a DigContext from a raw JSON string to parse and dig through data.', params: [{ name: 'json', type: 'String', desc: 'Raw JSON string' }], returnInfo: { type: 'DigContext', desc: 'Immutable DigContext' }, example: 'DigContext d = Dig.of("{\"user\": \"Alice\"}");' },
-      { name: 'DigContext.get', signature: 'Object DigContext.get(Object path)', description: 'Resolves a value from the context using a dot path.', params: [{ name: 'path', type: 'Object', desc: 'Path expression' }], returnInfo: { type: 'Object', desc: 'Resolved value or null' }, example: 'd.get("user.name");' },
-      { name: 'DigContext.getString', signature: 'String DigContext.getString(String path)', description: 'Resolves a path and converts the value to string.', params: [{ name: 'path', type: 'String', desc: 'Dot path' }], returnInfo: { type: 'String', desc: 'String value' }, example: 'd.getString("user.name");' },
-      { name: 'DigContext.getInt', signature: 'Integer DigContext.getInt(String path)', description: 'Resolves a path and converts to Integer.', params: [{ name: 'path', type: 'String', desc: 'Dot path' }], returnInfo: { type: 'Integer', desc: 'Integer value' }, example: 'd.getInt("user.age");' },
-      { name: 'DigContext.getBoolean', signature: 'Boolean DigContext.getBoolean(String path)', description: 'Resolves a path and converts to Boolean.', params: [{ name: 'path', type: 'String', desc: 'Dot path' }], returnInfo: { type: 'Boolean', desc: 'Boolean value' }, example: 'd.getBoolean("active");' }
+      {
+        name: 'Dig.of',
+        signature: 'DigContext Dig.of(String json)\nDigContext Dig.of(Object source)',
+        description: 'Factory entry point for creating DigContext instances from JSON Strings, or object graphs (Map/List/Array).',
+        params: [{ name: 'json / source', type: 'String / Object', desc: 'Raw JSON text or normalized object tree.' }],
+        returnInfo: { type: 'DigContext', desc: 'Immutable DigContext instance, never throws.' },
+        example: `String json = "{\\"user\\": {\\"name\\": \\"Alice\\", \\"age\\": 30}}";
+DigContext d = Dig.of(json);
+System.out.println(d.getString("user.name")); // Alice
+
+Map<String, Object> data = Map.of("name", "Bob", "age", 25);
+DigContext d2 = Dig.of(data);
+System.out.println(d2.getString("name")); // Bob`
+      },
+      {
+        name: 'DigContext.get',
+        signature: 'Object DigContext.get(Object path)\nObject DigContext.get(Object path, Object defaultValue)',
+        description: 'Resolves a value from the context using a dot path, list path, or object-array path.',
+        params: [{ name: 'path', type: 'Object', desc: 'Path expression (e.g. "user.profile.city")' }],
+        returnInfo: { type: 'Object', desc: 'Resolved value or null/defaultValue if not found' },
+        example: `DigContext d = Dig.of("{\\"user\\": {\\"profile\\": {\\"city\\": \\"NY\\"}}}");
+String city = (String) d.get("user.profile.city"); // "NY"
+Object missing = d.get("user.email");              // null
+
+DigContext d2 = Dig.of("{\\"count\\": 5}");
+Integer count = (Integer) d2.get("count", 0);         // 5
+Integer missingFallback = (Integer) d2.get("missing", 0);     // 0 (default)`
+      },
+      {
+        name: 'DigContext.has',
+        signature: 'boolean DigContext.has(Object path)',
+        description: 'Checks whether a path exists in the current context.',
+        params: [{ name: 'path', type: 'Object', desc: 'Path expression' }],
+        returnInfo: { type: 'boolean', desc: 'true if the path exists (even when value is null).' },
+        example: `DigContext d = Dig.of("{\\"user\\": {\\"name\\": null}}");
+System.out.println(d.has("user.name"));  // true (exists even though null)
+System.out.println(d.has("user.email")); // false (doesn't exist)`
+      },
+      {
+        name: 'DigContext.isEmpty',
+        signature: 'boolean DigContext.isEmpty()',
+        description: 'Indicates whether this context contains usable data or was instantiated from an empty/invalid blob.',
+        returnInfo: { type: 'boolean', desc: 'true when context is empty.' },
+        example: `DigContext valid = Dig.of("{\\"x\\": 1}");
+DigContext empty = Dig.of(null);
+System.out.println(valid.isEmpty());     // false
+System.out.println(empty.isEmpty());     // true
+System.out.println(empty == DigContext.EMPTY); // true`
+      },
+      {
+        name: 'DigContext.scope',
+        signature: 'DigContext DigContext.scope(Object path)',
+        description: 'Re-roots the context to a nested node, creating a child DigContext.',
+        params: [{ name: 'path', type: 'Object', desc: 'Path expression to scope to' }],
+        returnInfo: { type: 'DigContext', desc: 'Child DigContext rooted at the path.' },
+        example: `String json = "{\\"user\\": {\\"profile\\": {\\"city\\": \\"NY\\", \\"zip\\": 10001}}}";
+DigContext d = Dig.of(json);
+DigContext profile = d.scope("user.profile");
+System.out.println(profile.getString("city")); // "NY"
+System.out.println(profile.getString("zip"));  // 10001`
+      },
+      {
+        name: 'DigContext.getString',
+        signature: 'String DigContext.getString(String path)',
+        description: 'Resolves a path and converts the value to String.',
+        params: [{ name: 'path', type: 'String', desc: 'Dot path' }],
+        returnInfo: { type: 'String', desc: 'String value' },
+        example: `DigContext d = Dig.of("{\\"id\\": 42, \\"name\\": \\"Alice\\"}");
+System.out.println(d.getString("name")); // "Alice"
+System.out.println(d.getString("id"));   // "42" (converted to string)
+System.out.println(d.getString("missing")); // null`
+      },
+      {
+        name: 'DigContext.getInt',
+        signature: 'Integer DigContext.getInt(String path)',
+        description: 'Resolves a path and converts to Integer.',
+        params: [{ name: 'path', type: 'String', desc: 'Dot path' }],
+        returnInfo: { type: 'Integer', desc: 'Integer value' },
+        example: `DigContext d = Dig.of("{\\"count\\": 42, \\"price\\": 19.99, \\"quantity\\": \\"100\\"}");
+System.out.println(d.getInt("count"));     // 42
+System.out.println(d.getInt("price"));     // 19 (truncated from double)
+System.out.println(d.getInt("quantity"));  // 100 (parsed from string)
+System.out.println(d.getInt("missing"));   // null`
+      },
+      {
+        name: 'DigContext.getLong',
+        signature: 'Long DigContext.getLong(String path)',
+        description: 'Resolves a path and converts to Long.',
+        params: [{ name: 'path', type: 'String', desc: 'Dot path' }],
+        returnInfo: { type: 'Long', desc: 'Long value' },
+        example: `DigContext d = Dig.of("{\\"timestamp\\": 1609459200000, \\"count\\": \\"9999999999\\"}");
+System.out.println(d.getLong("timestamp")); // 1609459200000
+System.out.println(d.getLong("count"));     // 9999999999
+System.out.println(d.getLong("missing"));   // null`
+      },
+      {
+        name: 'DigContext.getDouble',
+        signature: 'Double DigContext.getDouble(String path)',
+        description: 'Resolves a path and converts to Double.',
+        params: [{ name: 'path', type: 'String', desc: 'Dot path' }],
+        returnInfo: { type: 'Double', desc: 'Double value' },
+        example: `DigContext d = Dig.of("{\\"price\\": 19.99, \\"rating\\": 4, \\"tax\\": \\"0.08\\"}");
+System.out.println(d.getDouble("price"));  // 19.99
+System.out.println(d.getDouble("rating")); // 4.0
+System.out.println(d.getDouble("tax"));    // 0.08
+System.out.println(d.getDouble("missing")); // null`
+      },
+      {
+        name: 'DigContext.getBoolean',
+        signature: 'Boolean DigContext.getBoolean(String path)',
+        description: 'Resolves a path and converts to Boolean. 0.0 -> false, non-zero -> true. "true" -> true, "false" -> false.',
+        params: [{ name: 'path', type: 'String', desc: 'Dot path' }],
+        returnInfo: { type: 'Boolean', desc: 'Boolean value' },
+        example: `DigContext d = Dig.of("{\\"active\\": true, \\"deleted\\": false, \\"count\\": 5, \\"enabled\\": \\"true\\"}");
+System.out.println(d.getBoolean("active"));   // true
+System.out.println(d.getBoolean("deleted"));  // false
+System.out.println(d.getBoolean("count"));    // true (5 != 0)
+System.out.println(d.getBoolean("enabled"));  // true (parsed from string)
+System.out.println(d.getBoolean("missing"));  // null`
+      }
     ]
   },
   {
@@ -134,9 +442,98 @@ const javaPackages = [
     description: 'Simplified Web Client',
     icon: '🌐',
     functions: [
-      { name: 'HttpBox.get', signature: 'String HttpBox.get(String url)', description: 'Sends a GET request and returns the response body as a String.', params: [{ name: 'url', type: 'String', desc: 'The URL to fetch' }], returnInfo: { type: 'String', desc: 'Response body' }, example: 'HttpBox.get("https://api.github.com");' },
-      { name: 'HttpBox.post', signature: 'String HttpBox.post(String url, String body)', description: 'Sends a POST request with a String body.', params: [{ name: 'url', type: 'String', desc: 'The URL to post to' }, { name: 'body', type: 'String', desc: 'Request body' }], returnInfo: { type: 'String', desc: 'Response body' }, example: 'HttpBox.post("https://api.example.com", "{\"id\": 1}");' },
-      { name: 'HttpBox.getJson', signature: 'JSONObject HttpBox.getJson(String url)', description: 'Sends a GET request and parses the response as JSON.', params: [{ name: 'url', type: 'String', desc: 'The URL' }], returnInfo: { type: 'JSONObject', desc: 'Parsed JSON' }, example: 'HttpBox.getJson("https://api.github.com");' }
+      {
+        name: 'HttpBox.get',
+        signature: 'String HttpBox.get(String url)',
+        description: 'Sends a GET request and returns the response body as a String. Returns null if status is not 2xx.',
+        params: [{ name: 'url', type: 'String', desc: 'The URL to fetch' }],
+        returnInfo: { type: 'String', desc: 'Response body' },
+        example: `String response = HttpBox.get("https://api.github.com/repos/funcBox-i3/funcBox-java");
+if (response != null) {
+    System.out.println(response);
+} else {
+    System.out.println("Request failed (non-2xx status)");
+}`
+      },
+      {
+        name: 'HttpBox.getJson',
+        signature: 'JSONObject HttpBox.getJson(String url)',
+        description: 'Sends a GET request and parses the response as JSON.',
+        params: [{ name: 'url', type: 'String', desc: 'The URL' }],
+        returnInfo: { type: 'JSONObject', desc: 'Parsed JSON wrapper' },
+        example: `JSONObject repo = HttpBox.getJson("https://api.github.com/repos/funcBox-i3/funcBox-java");
+if (repo != null) {
+    System.out.println("Stars: " + repo.getInt("stargazers_count"));
+} else {
+    System.out.println("Failed to fetch JSON");
+}`
+      },
+      {
+        name: 'HttpBox.post',
+        signature: 'String HttpBox.post(String url, String body)',
+        description: 'Sends a POST request with a String body.',
+        params: [{ name: 'url', type: 'String', desc: 'The URL to post to' }, { name: 'body', type: 'String', desc: 'Request body' }],
+        returnInfo: { type: 'String', desc: 'Response body' },
+        example: `String json = "{\\"name\\": \\"Alice\\", \\"age\\": 30}";
+String response = HttpBox.post("https://api.example.com/users", json);
+if (response != null) {
+    System.out.println("Created: " + response);
+}`
+      },
+      {
+        name: 'HttpBox.postJson',
+        signature: 'String HttpBox.postJson(String url, JSONObject jsonObj)',
+        description: 'Sends a POST request passing a JSONObject.',
+        params: [{ name: 'url', type: 'String', desc: 'The URL to post to' }, { name: 'jsonObj', type: 'JSONObject', desc: 'Payload Object' }],
+        returnInfo: { type: 'String', desc: 'Response body' },
+        example: `JSONObject payload = new JSONObject();
+payload.put("name", "Bob");
+payload.put("email", "bob@example.com");
+
+String response = HttpBox.postJson("https://api.example.com/users", payload);
+if (response != null) {
+    System.out.println("Success: " + response);
+}`
+      },
+      {
+        name: 'HttpBox.put',
+        signature: 'String HttpBox.put(String url, String body)',
+        description: 'Sends a PUT request with a String body and returns the response.',
+        params: [{ name: 'url', type: 'String', desc: 'URL to put to' }, { name: 'body', type: 'String', desc: 'Request body' }],
+        returnInfo: { type: 'String', desc: 'Response body' },
+        example: `String json = "{\\"id\\": 123, \\"status\\": \\"active\\"}";
+String response = HttpBox.put("https://api.example.com/users/123", json);
+if (response != null) {
+    System.out.println("Updated: " + response);
+}`
+      },
+      {
+        name: 'HttpBox.delete',
+        signature: 'String HttpBox.delete(String url)',
+        description: 'Sends a DELETE request and returns the response.',
+        params: [{ name: 'url', type: 'String', desc: 'URL to delete' }],
+        returnInfo: { type: 'String', desc: 'Response body' },
+        example: `String response = HttpBox.delete("https://api.example.com/users/123");
+if (response != null) {
+    System.out.println("Deleted successfully: " + response);
+}`
+      },
+      {
+        name: 'HttpBox.request',
+        signature: 'String HttpBox.request(String method, String url, String body, String contentType)',
+        description: 'Generic request method supporting custom HTTP methods.',
+        params: [{ name: 'method', type: 'String', desc: 'HTTP Methd' }, { name: 'url', type: 'String', desc: 'Target URL' }, { name: 'body', type: 'String', desc: 'Request Body' }, { name: 'contentType', type: 'String', desc: 'Content Header' }],
+        returnInfo: { type: 'String', desc: 'Response body' },
+        example: `String response = HttpBox.request(
+    "PATCH",
+    "https://api.example.com/data/1",
+    "{\\"field\\": \\"value\\"}",
+    "application/json"
+);
+if (response != null) {
+    System.out.println("Patched: " + response);
+}`
+      }
     ]
   },
   {
@@ -145,7 +542,29 @@ const javaPackages = [
     description: 'Graph Algorithms',
     icon: '🕸️',
     functions: [
-      { name: 'Dijkstra.dijkstra', signature: 'Result Dijkstra.dijkstra(Map<...> graph, String startNode, String endNode)', description: 'Computes shortest paths using Dijkstra algorithm.', params: [{ name: 'graph', type: 'Map', desc: 'Adjacency map' }, { name: 'startNode', type: 'String', desc: 'Start node' }, { name: 'endNode', type: 'String', desc: '(optional) Target node' }], returnInfo: { type: 'Result', desc: 'distances and paths.' }, example: 'Result result = Dijkstra.dijkstra(graph, "A", "F");' }
+      {
+        name: 'Dijkstra.dijkstra',
+        signature: 'Result Dijkstra.dijkstra(Map<String, Map<String, Integer>> graph, String startNode)\nResult Dijkstra.dijkstra(Map<...> graph, String startNode, String endNode)',
+        description: 'Computes shortest paths using Dijkstra algorithm iteratively. Overloads exist for finding paths to all reachable nodes vs finding a path to a specific target node.',
+        params: [{ name: 'graph', type: 'Map', desc: 'Adjacency map of weights' }, { name: 'startNode', type: 'String', desc: 'Start node' }, { name: 'endNode', type: 'String', desc: '(optional) Target node. Early exits when found.' }],
+        returnInfo: { type: 'Result', desc: 'A result wrapper containing `distances` and `paths` Maps.' },
+        example: `Map<String, Map<String, Integer>> graph = new HashMap<>();
+graph.put("A", Map.of("B", 4, "C", 2));
+graph.put("B", Map.of("D", 5, "E", 1));
+graph.put("C", Map.of("B", 1, "E", 3));
+graph.put("D", Map.of("F", 2));
+graph.put("E", Map.of("D", 1, "F", 4));
+graph.put("F", Map.of());
+
+// Find path from A to F
+Result result = Dijkstra.dijkstra(graph, "A", "F");
+
+System.out.println(result.distances);
+// {A=0, C=2, B=3, E=4, D=5, F=7}
+
+System.out.println(result.paths.get("F"));        
+// [A, C, B, E, D, F]`
+      }
     ]
   }
 ];
@@ -216,17 +635,18 @@ const JavaDocs = () => {
 
   return (
     <div style={{ position: 'relative', width: '100%', minHeight: '100vh' }}>
-      {/* Subtle Java background watermark */}
-      <div
+      {/* Adaptive Background for Java */}
+      <div 
         style={{
           position: 'fixed',
           top: 0, left: 0, width: '100vw', height: '100vh',
-          zIndex: 0, opacity: 0.06, pointerEvents: 'none',
+          zIndex: 0, opacity: 0.15, pointerEvents: 'none',
           backgroundImage: 'url(/java_bg.png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          mixBlendMode: 'screen',
-        }}
+          backgroundAttachment: 'fixed',
+          mixBlendMode: 'screen'
+        }} 
       />
 
       <motion.div
