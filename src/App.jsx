@@ -1,14 +1,71 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, useScroll } from 'framer-motion';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import './index.css';
 import Home from './Home';
-import Documentation from './Documentation';
+import PythonDocs from './PythonDocs';
+import JavaDocs from './JavaDocs';
+
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
+const Navigation = () => {
+  const { pathname } = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  return (
+    <nav className="clay-nav">
+      <Link to="/" className="logo-container" style={{ textDecoration: 'none' }} onClick={() => setIsMobileMenuOpen(false)}>
+        <motion.img 
+          src="/logo.png" 
+          alt="funcBox logo" 
+          whileHover={{ rotate: 90, scale: 1.15, filter: "drop-shadow(0 0 10px var(--accent))" }}
+          whileTap={{ scale: 0.85, rotate: -90 }}
+          drag
+          dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+          dragElastic={0.6}
+          transition={{ type: "spring", stiffness: 300, damping: 15 }}
+          style={{ width: '40px', height: '40px', borderRadius: '10px', cursor: 'grab', userSelect: 'none' }}
+        />
+        <span className="logo-text">funcBox</span>
+      </Link>
+      
+      <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label="Toggle menu">
+        {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+      </button>
+
+      <div className={`nav-links ${isMobileMenuOpen ? 'active' : ''}`}>
+        <Link to="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
+          Home
+        </Link>
+        <Link to="/python" className={`nav-link ${pathname === '/python' ? 'active' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
+          Python API
+        </Link>
+        <Link to="/java" className={`nav-link ${pathname === '/java' ? 'active' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
+          Java API
+        </Link>
+        <a href="https://github.com/funcBox-i3/" target="_blank" rel="noreferrer" className="github-btn" onClick={() => setIsMobileMenuOpen(false)}>
+          <span>🔗 GitHub</span>
+        </a>
+      </div>
+    </nav>
+  );
+};
 
 export default function App() {
   const { scrollYProgress } = useScroll();
 
   return (
-    <>
+    <Router>
+      <ScrollToTop />
       <div className="bg-blobs">
         <div className="blob blob-1"></div>
         <div className="blob blob-2"></div>
@@ -21,49 +78,13 @@ export default function App() {
       />
 
       <div className="app-container">
-        <nav className="clay-nav">
-          <div className="logo-container" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
-            <span className="logo-icon">{`{ }`}</span>
-            <span className="logo-text">funcBox</span>
-          </div>
-          
-          <div className="nav-links">
-            <button 
-              className="nav-link" 
-              style={{background:'none', border:'none', fontFamily: 'var(--font-main)'}}
-              onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}
-            >
-              Home
-            </button>
-            <button 
-              className="nav-link"
-              style={{background:'none', border:'none', fontFamily: 'var(--font-main)'}} 
-              onClick={() => { document.getElementById('docs')?.scrollIntoView({behavior: 'smooth'}) }}
-            >
-              Docs
-            </button>
-            <button 
-              className="nav-link" 
-              style={{background:'none', border:'none', fontFamily: 'var(--font-main)'}}
-              onClick={() => { document.getElementById('about')?.scrollIntoView({behavior: 'smooth'}) }}
-            >
-              About Me
-            </button>
-            <button 
-              className="nav-link" 
-              style={{background:'none', border:'none', fontFamily: 'var(--font-main)'}}
-              onClick={() => { document.getElementById('contact')?.scrollIntoView({behavior: 'smooth'}) }}
-            >
-              Contact Us
-            </button>
-            <a href="https://github.com/funcBox-i3/" target="_blank" rel="noreferrer" className="github-btn">
-              <span>🔗 GitHub</span>
-            </a>
-          </div>
-        </nav>
+        <Navigation />
 
-        <Home />
-        <Documentation />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/python" element={<PythonDocs />} />
+          <Route path="/java" element={<JavaDocs />} />
+        </Routes>
         
         <footer className="footer-container" id="about">
           <div className="footer-grid">
@@ -91,6 +112,6 @@ export default function App() {
           </div>
         </footer>
       </div>
-    </>
+    </Router>
   );
 }

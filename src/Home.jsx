@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   const { scrollYProgress } = useScroll();
@@ -23,22 +24,6 @@ const Home = () => {
       desc: 'Implements structures like Dijkstra natively so you can focus on building your app immediately.'
     }
   ];
-
-  const scrollToSection = (id) => {
-    const el = document.getElementById(id);
-    if(el) {
-      const offset = 100;
-      const bodyRect = document.body.getBoundingClientRect().top;
-      const elementRect = el.getBoundingClientRect().top;
-      const elementPosition = elementRect - bodyRect;
-      const offsetPosition = elementPosition - offset;
-      
-      window.scrollTo({
-         top: offsetPosition,
-         behavior: "smooth"
-      });
-    }
-  }
 
   return (
     <motion.div 
@@ -85,12 +70,12 @@ const Home = () => {
           style={{ y: yPos }}
           className="hero-actions"
         >
-          <button className="btn-primary" onClick={() => scrollToSection('docs')}>
-            📖 Read Documentation
-          </button>
-          <button className="btn-secondary" onClick={() => scrollToSection('about')}>
-            🙋‍♂️ About Us
-          </button>
+          <Link to="/python" className="btn-primary" style={{ textDecoration: 'none' }}>
+            🐍 Python Docs
+          </Link>
+          <Link to="/java" className="btn-secondary" style={{ textDecoration: 'none' }}>
+            ☕ Java Docs
+          </Link>
         </motion.div>
       </section>
 
@@ -103,7 +88,9 @@ const Home = () => {
               initial={{ y: 100, opacity: 0, scale: 0.9 }}
               whileInView={{ y: 0, opacity: 1, scale: 1 }}
               viewport={{ once: true, margin: "-50px" }}
-              transition={{ delay: index * 0.2, duration: 0.6, type: "spring" }}
+              whileHover={{ scale: 1.05, y: -10 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ delay: index * 0.1, duration: 0.4, type: "spring" }}
               className="feature-card clay-panel"
             >
               <div className="feature-icon">{item.icon}</div>
