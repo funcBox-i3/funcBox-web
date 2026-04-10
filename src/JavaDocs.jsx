@@ -14,14 +14,14 @@ const CodeBlock = ({ code, language }) => {
   };
 
   return (
-    <div className="code-container" style={{ position: 'relative', overflow: 'hidden' }}>
-      <button className="copy-btn" onClick={handleCopy} aria-label="Copy code">
-        {copied ? 'Copied! ✨' : 'Copy'}
+    <div className="code-container">
+      <button className={`copy-btn ${copied ? 'copied' : ''}`} onClick={handleCopy} aria-label="Copy code">
+        {copied ? '✓ Copied' : 'Copy'}
       </button>
-      <SyntaxHighlighter 
-        language={language} 
+      <SyntaxHighlighter
+        language={language}
         style={vscDarkPlus}
-        customStyle={{ margin: 0, background: 'transparent', fontSize: '1rem', padding: '24px', paddingTop: '40px' }}
+        customStyle={{ margin: 0, background: 'transparent', fontSize: '0.875rem', padding: '20px 24px 24px', lineHeight: '1.7' }}
         wrapLongLines={true}
       >
         {code}
@@ -31,13 +31,12 @@ const CodeBlock = ({ code, language }) => {
 };
 
 const FunctionBlock = React.memo(({ name, signature, description, params, returnInfo, example, index, isJava }) => (
-  <motion.div 
-    initial={{ opacity: 0, scale: 0.95, y: 50 }}
-    whileInView={{ opacity: 1, scale: 1, y: 0 }}
-    viewport={{ once: true, margin: "-100px" }}
-    whileHover={{ scale: 1.02, y: -5 }}
-    transition={{ duration: 0.4, delay: index * 0.05, type: "spring", stiffness: 120 }}
-    className="func-block clay-panel"
+  <motion.div
+    initial={{ opacity: 0, y: 24 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: '-80px' }}
+    transition={{ duration: 0.35, delay: index * 0.04 }}
+    className="func-block"
     id={name.replace(/\./g, '-')}
   >
     <div className="func-header">
@@ -46,17 +45,17 @@ const FunctionBlock = React.memo(({ name, signature, description, params, return
         <span className={`type-badge ${isJava ? 'java-badge' : ''}`}>{signature}</span>
       </div>
     </div>
-    <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '1.1rem' }}>{description}</p>
-    
+    <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.975rem' }}>{description}</p>
+
     {params && params.length > 0 && (
-      <div style={{ marginBottom: '32px' }}>
+      <div style={{ marginBottom: '24px' }}>
         <h4 className="func-section-title">Parameters</h4>
         <ul className="param-list">
           {params.map((p, i) => (
             <li key={i}>
-              <strong style={{ color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>{p.name}</strong> 
-              <span className={`type-badge ${isJava ? 'java-badge' : ''}`} style={{ marginLeft: '12px', marginRight: '8px' }}>{p.type}</span> 
-              {p.desc && <span>- {p.desc}</span>}
+              <strong style={{ color: 'var(--accent)', fontFamily: 'var(--font-mono)', fontSize: '0.88rem' }}>{p.name}</strong>
+              <span className={`type-badge ${isJava ? 'java-badge' : ''}`} style={{ marginLeft: '10px', marginRight: '8px' }}>{p.type}</span>
+              {p.desc && <span style={{ color: 'var(--text-muted)' }}>— {p.desc}</span>}
             </li>
           ))}
         </ul>
@@ -64,12 +63,12 @@ const FunctionBlock = React.memo(({ name, signature, description, params, return
     )}
 
     {returnInfo && (
-      <div style={{ marginBottom: '32px' }}>
+      <div style={{ marginBottom: '24px' }}>
         <h4 className="func-section-title">Returns</h4>
         <ul className="param-list">
           <li>
-            <span className={`type-badge ${isJava ? 'java-badge' : ''}`} style={{ marginRight: '8px' }}>{returnInfo.type}</span> 
-            {returnInfo.desc && <span>- {returnInfo.desc}</span>}
+            <span className={`type-badge ${isJava ? 'java-badge' : ''}`} style={{ marginRight: '8px' }}>{returnInfo.type}</span>
+            {returnInfo.desc && <span style={{ color: 'var(--text-muted)' }}>— {returnInfo.desc}</span>}
           </li>
         </ul>
       </div>
@@ -77,7 +76,7 @@ const FunctionBlock = React.memo(({ name, signature, description, params, return
 
     {example && (
       <>
-        <h4 className="func-section-title">Example Usage</h4>
+        <h4 className="func-section-title">Example</h4>
         <CodeBlock code={example} language={isJava ? 'java' : 'python'} />
       </>
     )}
@@ -122,7 +121,7 @@ const javaPackages = [
     description: 'Safe JSON Navigation',
     icon: '🧭',
     functions: [
-      { name: 'Dig.of', signature: 'DigContext Dig.of(String json)', description: 'Creates a DigContext from a raw JSON string to parse and dig through data.', params: [{ name: 'json', type: 'String', desc: 'Raw JSON string' }], returnInfo: { type: 'DigContext', desc: 'Immutable DigContext' }, example: 'DigContext d = Dig.of("{\\"user\\": \\"Alice\\"}");' },
+      { name: 'Dig.of', signature: 'DigContext Dig.of(String json)', description: 'Creates a DigContext from a raw JSON string to parse and dig through data.', params: [{ name: 'json', type: 'String', desc: 'Raw JSON string' }], returnInfo: { type: 'DigContext', desc: 'Immutable DigContext' }, example: 'DigContext d = Dig.of("{\"user\": \"Alice\"}");' },
       { name: 'DigContext.get', signature: 'Object DigContext.get(Object path)', description: 'Resolves a value from the context using a dot path.', params: [{ name: 'path', type: 'Object', desc: 'Path expression' }], returnInfo: { type: 'Object', desc: 'Resolved value or null' }, example: 'd.get("user.name");' },
       { name: 'DigContext.getString', signature: 'String DigContext.getString(String path)', description: 'Resolves a path and converts the value to string.', params: [{ name: 'path', type: 'String', desc: 'Dot path' }], returnInfo: { type: 'String', desc: 'String value' }, example: 'd.getString("user.name");' },
       { name: 'DigContext.getInt', signature: 'Integer DigContext.getInt(String path)', description: 'Resolves a path and converts to Integer.', params: [{ name: 'path', type: 'String', desc: 'Dot path' }], returnInfo: { type: 'Integer', desc: 'Integer value' }, example: 'd.getInt("user.age");' },
@@ -136,7 +135,7 @@ const javaPackages = [
     icon: '🌐',
     functions: [
       { name: 'HttpBox.get', signature: 'String HttpBox.get(String url)', description: 'Sends a GET request and returns the response body as a String.', params: [{ name: 'url', type: 'String', desc: 'The URL to fetch' }], returnInfo: { type: 'String', desc: 'Response body' }, example: 'HttpBox.get("https://api.github.com");' },
-      { name: 'HttpBox.post', signature: 'String HttpBox.post(String url, String body)', description: 'Sends a POST request with a String body.', params: [{ name: 'url', type: 'String', desc: 'The URL to post to' }, { name: 'body', type: 'String', desc: 'Request body' }], returnInfo: { type: 'String', desc: 'Response body' }, example: 'HttpBox.post("https://api.example.com", "{\\"id\\": 1}");' },
+      { name: 'HttpBox.post', signature: 'String HttpBox.post(String url, String body)', description: 'Sends a POST request with a String body.', params: [{ name: 'url', type: 'String', desc: 'The URL to post to' }, { name: 'body', type: 'String', desc: 'Request body' }], returnInfo: { type: 'String', desc: 'Response body' }, example: 'HttpBox.post("https://api.example.com", "{\"id\": 1}");' },
       { name: 'HttpBox.getJson', signature: 'JSONObject HttpBox.getJson(String url)', description: 'Sends a GET request and parses the response as JSON.', params: [{ name: 'url', type: 'String', desc: 'The URL' }], returnInfo: { type: 'JSONObject', desc: 'Parsed JSON' }, example: 'HttpBox.getJson("https://api.github.com");' }
     ]
   },
@@ -146,7 +145,7 @@ const javaPackages = [
     description: 'Graph Algorithms',
     icon: '🕸️',
     functions: [
-      { name: 'Dijkstra.dijkstra', signature: 'Result Dijkstra.dijkstra(Map<...> graph, String startNode, String endNode)', description: 'Computes shortest paths using Dijkstra algorithm.', params: [ { name: 'graph', type: 'Map', desc: 'Adjacency map' }, { name: 'startNode', type: 'String', desc: 'Start node' }, { name: 'endNode', type: 'String', desc: '(optional) Target node' } ], returnInfo: { type: 'Result', desc: 'distances and paths.' }, example: 'Result result = Dijkstra.dijkstra(graph, "A", "F");' }
+      { name: 'Dijkstra.dijkstra', signature: 'Result Dijkstra.dijkstra(Map<...> graph, String startNode, String endNode)', description: 'Computes shortest paths using Dijkstra algorithm.', params: [{ name: 'graph', type: 'Map', desc: 'Adjacency map' }, { name: 'startNode', type: 'String', desc: 'Start node' }, { name: 'endNode', type: 'String', desc: '(optional) Target node' }], returnInfo: { type: 'Result', desc: 'distances and paths.' }, example: 'Result result = Dijkstra.dijkstra(graph, "A", "F");' }
     ]
   }
 ];
@@ -157,15 +156,14 @@ const JavaDocs = () => {
   const [search, setSearch] = useState('');
 
   const activePackage = javaPackages.find(p => p.id === activePackageId);
-  const filteredData = activePackage 
-    ? activePackage.functions.filter(func => 
-        func.name.toLowerCase().includes(search.toLowerCase()) || 
+  const filteredData = activePackage
+    ? activePackage.functions.filter(func =>
+        func.name.toLowerCase().includes(search.toLowerCase()) ||
         func.description.toLowerCase().includes(search.toLowerCase())
       )
     : [];
 
   useEffect(() => {
-    // Scroll to top when switching packages
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setSearch('');
   }, [activePackageId]);
@@ -206,185 +204,167 @@ const JavaDocs = () => {
     e.preventDefault();
     const element = document.getElementById(id);
     if (element) {
-      const offset = 100;
+      const offset = 110;
       const bodyRect = document.body.getBoundingClientRect().top;
       const elementRect = element.getBoundingClientRect().top;
       const offsetPosition = (elementRect - bodyRect) - offset;
-      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
       window.history.pushState(null, '', '#' + id);
       setActiveId(id);
     }
   };
 
   return (
-    <div style={{ position: 'relative', width: '100%', minHeight: '100vh', background: 'var(--bg-color)' }}>
-      {/* Adaptive Background for Java */}
-      <div 
+    <div style={{ position: 'relative', width: '100%', minHeight: '100vh' }}>
+      {/* Subtle Java background watermark */}
+      <div
         style={{
           position: 'fixed',
           top: 0, left: 0, width: '100vw', height: '100vh',
-          zIndex: 0, opacity: 0.15, pointerEvents: 'none',
+          zIndex: 0, opacity: 0.06, pointerEvents: 'none',
           backgroundImage: 'url(/java_bg.png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           mixBlendMode: 'screen',
-          willChange: 'transform'
-        }} 
+        }}
       />
 
-      <motion.div 
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
         className="docs-layout"
         id="docs"
         style={{ position: 'relative', zIndex: 10 }}
       >
+        {/* ── Sidebar ── */}
         <aside className="docs-sidebar">
           {activePackageId ? (
             <>
-              <button 
-                onClick={() => setActivePackageId(null)} 
-                style={{ 
-                  background: 'none', border: 'none', color: 'var(--accent)', fontWeight: 'bold', 
-                  display: 'flex', alignItems: 'center', cursor: 'pointer', marginBottom: '20px', fontSize: '1rem' 
-                }}
+              <button
+                onClick={() => setActivePackageId(null)}
+                className="sidebar-back"
               >
-                &larr; Back to Packages
+                ← All Packages
               </button>
-              <h3 className="sidebar-title">{activePackage.name} Functions</h3>
-              <div style={{ paddingBottom: '16px' }}>
-                <input 
-                   type="text" 
-                   placeholder={`Search ${activePackage.name}...`} 
-                   value={search}
-                   onChange={(e) => setSearch(e.target.value)}
-                   className="clay-panel"
-                   style={{ 
-                     width: '100%', padding: '12px', borderRadius: '12px', border: 'var(--skeuo-border)', 
-                     background: 'var(--clay-bg)', color: 'var(--text-main)', outline: 'none',
-                     boxShadow: 'var(--clay-shadow-inset)'
-                   }}
-                />
-              </div>
+              <p className="sidebar-title">{activePackage.name}</p>
+              <input
+                type="text"
+                placeholder={`Search ${activePackage.name}…`}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="sidebar-search"
+              />
               <nav className="sidebar-nav">
                 {filteredData.map(func => {
                   const id = func.name.replace(/\./g, '-');
                   return (
-                    <a 
-                      key={func.name} 
-                      href={`#${id}`} 
+                    <a
+                      key={func.name}
+                      href={`#${id}`}
                       onClick={(e) => scrollToHash(e, id)}
                       className={`sidebar-link ${activeId === id ? 'active' : ''}`}
                     >
-                       {func.name}
+                      {func.name}
                     </a>
-                  )
+                  );
                 })}
               </nav>
             </>
           ) : (
             <>
-              <Link to="/" style={{ textDecoration: 'none', color: 'var(--accent)', fontWeight: 'bold', display: 'block', marginBottom: '20px' }}>
-                &larr; Back to Home
-              </Link>
-              <h3 className="sidebar-title">Getting Started</h3>
+              <Link to="/" className="sidebar-back">← Back to Home</Link>
+              <p className="sidebar-title">Getting Started</p>
               <nav className="sidebar-nav">
                 <a onClick={(e) => scrollToHash(e, 'installation')} href="#installation" className={`sidebar-link ${activeId === 'installation' ? 'active' : ''}`}>Installation</a>
                 <a onClick={(e) => scrollToHash(e, 'usage')} href="#usage" className={`sidebar-link ${activeId === 'usage' ? 'active' : ''}`}>Basic Usage</a>
               </nav>
 
-              <h3 className="sidebar-title">API Reference</h3>
+              <p className="sidebar-title">Packages</p>
               <nav className="sidebar-nav">
                 {javaPackages.map(pkg => (
-                  <button 
-                    key={pkg.id} 
+                  <button
+                    key={pkg.id}
                     onClick={() => setActivePackageId(pkg.id)}
                     className="sidebar-link"
-                    style={{ background: 'none', border: 'none', textAlign: 'left', width: '100%', cursor: 'pointer' }}
+                    style={{ cursor: 'pointer' }}
                   >
-                     {pkg.name}
+                    {pkg.name}
                   </button>
                 ))}
               </nav>
             </>
           )}
         </aside>
-        
+
+        {/* ── Main Content ── */}
         <main className="docs-content">
-          <h1>Java Documentation</h1>
-          
+          <div className="docs-header">
+            <div className="docs-header-badge">☕ Java</div>
+            <h1>Java Documentation</h1>
+            <p style={{ marginBottom: 0 }}>
+              Complete API reference for the funcBox Java library.
+            </p>
+          </div>
+
           {!activePackageId ? (
             <>
-              <motion.section id="installation">
+              <section id="installation">
                 <h2>Installation</h2>
-                <p>Integrate FuncBox into your project using Maven.</p>
+                <p>Integrate FuncBox into your project using Maven:</p>
                 <CodeBlock code={`<dependency>\n    <groupId>io.github.funcbox-i3</groupId>\n    <artifactId>funcBox</artifactId>\n    <version>1.1.0</version>\n</dependency>`} language="xml" />
-                <p style={{marginTop: '20px'}}>Or Gradle:</p>
+                <p style={{ marginTop: '16px' }}>Or with Gradle:</p>
                 <CodeBlock code={`implementation 'io.github.funcbox-i3:funcBox:1.1.0'`} language="gradle" />
-              </motion.section>
+              </section>
 
-              <motion.section id="usage">
+              <section id="usage">
                 <h2>Basic Usage</h2>
                 <p>Import the required static methods and call them directly.</p>
-                <CodeBlock code="import funcBox.Misc;\n\nSystem.out.println(Misc.isPrime(17)); // true" language="java" />
-              </motion.section>
+                <CodeBlock code={"import funcBox.Misc;\n\nSystem.out.println(Misc.isPrime(17)); // true"} language="java" />
+              </section>
 
-              <h2 style={{ marginTop: '80px', border: 'none', color: 'var(--primary)', fontWeight: 700 }}>API Reference Packages</h2>
-              <p style={{marginBottom: '40px'}}>Explore the modules provided natively within funcBox for Java. Select a package below to view its functions in detail.</p>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
+              <h2 style={{ marginTop: '56px' }}>API Packages</h2>
+              <p style={{ marginBottom: '24px' }}>
+                Select a package below to explore its functions in detail.
+              </p>
+
+              <div className="package-grid">
                 {javaPackages.map((pkg, idx) => (
                   <motion.div
                     key={pkg.id}
-                    className="clay-panel"
-                    initial={{ opacity: 0, y: 30 }}
+                    className="package-card"
+                    initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    whileHover={{ scale: 1.02, y: -5 }}
-                    whileTap={{ scale: 0.98 }}
+                    transition={{ delay: idx * 0.08 }}
                     onClick={() => setActivePackageId(pkg.id)}
-                    style={{ 
-                      padding: '40px 30px', 
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'flex-start',
-                      gap: '16px',
-                      border: '2px solid transparent',
-                      transition: 'border 0.3s ease',
-                      minHeight: '260px'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.border = '2px solid var(--accent)'}
-                    onMouseLeave={(e) => e.currentTarget.style.border = '2px solid transparent'}
                   >
-                    <div style={{ fontSize: '3rem', marginBottom: '8px' }}>{pkg.icon}</div>
-                    <h3 style={{ margin: 0, fontSize: '1.6rem', color: 'var(--accent)' }}>{pkg.name}</h3>
-                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '1.15rem', lineHeight: 1.6 }}>{pkg.description}</p>
-                    <div style={{ marginTop: 'auto', paddingTop: '20px', color: 'var(--primary)', fontWeight: 'bold', fontSize: '1.1rem' }}>
-                      {pkg.functions.length} functions &rarr;
-                    </div>
+                    <div className="package-icon">{pkg.icon}</div>
+                    <div className="package-name">{pkg.name}</div>
+                    <p className="package-desc">{pkg.description}</p>
+                    <div className="package-count">{pkg.functions.length} functions →</div>
                   </motion.div>
                 ))}
               </div>
             </>
           ) : (
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <div id="package-info" style={{ marginBottom: '40px' }}>
-                <h2 style={{ color: 'var(--accent)', borderBottom: 'none' }}>Package: {activePackage.name}</h2>
-                <p style={{ fontSize: '1.2rem', color: 'var(--text-secondary)' }}>{activePackage.description}</p>
+              <div id="package-info" style={{ marginBottom: '36px' }}>
+                <h2 style={{ borderBottom: 'none', marginTop: 0 }}>
+                  {activePackage.icon} {activePackage.name}
+                </h2>
+                <p>{activePackage.description}</p>
               </div>
 
               {filteredData.length === 0 ? (
-                 <p>No functions found matching your search "{search}".</p>
+                <p style={{ color: 'var(--text-muted)' }}>No functions match "{search}".</p>
               ) : (
-                 filteredData.map((data, index) => (
-                   <FunctionBlock key={data.name} {...data} index={index} isJava={true} />
-                 ))
+                filteredData.map((data, index) => (
+                  <FunctionBlock key={data.name} {...data} index={index} isJava={true} />
+                ))
               )}
             </motion.div>
           )}
