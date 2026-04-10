@@ -100,7 +100,7 @@ export default function App() {
                  Have ideas or want to contribute? Reach out via our standard channels.
                </p>
                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                 <p className="footer-text">📧 <strong>Email:</strong> support@funcbox.dev</p>
+                 <p className="footer-text">📧 <strong>Email:</strong> funcboxi3@gmail.com</p>
                  <p className="footer-text">💻 <strong>GitHub:</strong> <a href="https://github.com/funcBox-i3/" style={{color: 'var(--accent)', textDecoration: 'none'}}>github.com/funcBox-i3</a></p>
                </div>
             </div>
