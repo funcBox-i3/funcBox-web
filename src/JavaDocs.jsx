@@ -30,7 +30,7 @@ const CodeBlock = ({ code, language }) => {
   );
 };
 
-const FunctionBlock = ({ name, signature, description, params, returnInfo, example, index, isJava }) => (
+const FunctionBlock = React.memo(({ name, signature, description, params, returnInfo, example, index, isJava }) => (
   <motion.div 
     initial={{ opacity: 0, scale: 0.95, y: 50 }}
     whileInView={{ opacity: 1, scale: 1, y: 0 }}
@@ -82,13 +82,14 @@ const FunctionBlock = ({ name, signature, description, params, returnInfo, examp
       </>
     )}
   </motion.div>
-);
+));
 
 const javaPackages = [
   {
     id: 'misc',
     name: 'Misc',
     description: 'Mathematics & String Utilities',
+    icon: '🧮',
     functions: [
       { name: 'Misc.isPrime', signature: 'boolean Misc.isPrime(int num)', description: 'Checks whether a given number is prime.', params: [{ name: 'num', type: 'int', desc: 'The number to check.' }], returnInfo: { type: 'boolean', desc: 'true if prime, false otherwise.' }, example: 'Misc.isPrime(7);   // true\nMisc.isPrime(10);  // false' },
       { name: 'Misc.primes', signature: 'List<Integer> Misc.primes(int start, int limit)', description: 'Generates all prime numbers within a given range.', params: [{ name: 'start', type: 'int', desc: 'Lower bound.' }, { name: 'limit', type: 'int', desc: 'Upper bound.' }], returnInfo: { type: 'List<Integer>', desc: 'List of primes.' }, example: 'Misc.primes(2, 10);   // [2, 3, 5, 7]' },
@@ -108,6 +109,7 @@ const javaPackages = [
     id: 'io',
     name: 'funcBox.io',
     description: 'File & Resource Utilities',
+    icon: '📁',
     functions: [
       { name: 'FileUtil.loadResource', signature: 'String FileUtil.loadResource(String path)', description: 'Load a UTF-8 text resource from src/main/resources.', params: [{ name: 'path', type: 'String', desc: 'Resource path' }], returnInfo: { type: 'String', desc: 'Resource content' }, example: 'FileUtil.loadResource("demo.txt");' },
       { name: 'FileUtil.safeWrite', signature: 'void FileUtil.safeWrite(Path path, String content)', description: 'Atomic write using temp-file + backup + rollback.', params: [{ name: 'path', type: 'Path', desc: 'File path' }, { name: 'content', type: 'String', desc: 'Content' }], returnInfo: { type: 'void', desc: 'None' }, example: 'FileUtil.safeWrite(Path.of("out.txt"), "hello");' },
@@ -118,6 +120,7 @@ const javaPackages = [
     id: 'dig',
     name: 'funcBox.dig',
     description: 'Safe JSON Navigation',
+    icon: '🧭',
     functions: [
       { name: 'Dig.of', signature: 'DigContext Dig.of(String json)', description: 'Creates a DigContext from a raw JSON string to parse and dig through data.', params: [{ name: 'json', type: 'String', desc: 'Raw JSON string' }], returnInfo: { type: 'DigContext', desc: 'Immutable DigContext' }, example: 'DigContext d = Dig.of("{\\"user\\": \\"Alice\\"}");' },
       { name: 'DigContext.get', signature: 'Object DigContext.get(Object path)', description: 'Resolves a value from the context using a dot path.', params: [{ name: 'path', type: 'Object', desc: 'Path expression' }], returnInfo: { type: 'Object', desc: 'Resolved value or null' }, example: 'd.get("user.name");' },
@@ -130,6 +133,7 @@ const javaPackages = [
     id: 'http',
     name: 'funcBox.http',
     description: 'Simplified Web Client',
+    icon: '🌐',
     functions: [
       { name: 'HttpBox.get', signature: 'String HttpBox.get(String url)', description: 'Sends a GET request and returns the response body as a String.', params: [{ name: 'url', type: 'String', desc: 'The URL to fetch' }], returnInfo: { type: 'String', desc: 'Response body' }, example: 'HttpBox.get("https://api.github.com");' },
       { name: 'HttpBox.post', signature: 'String HttpBox.post(String url, String body)', description: 'Sends a POST request with a String body.', params: [{ name: 'url', type: 'String', desc: 'The URL to post to' }, { name: 'body', type: 'String', desc: 'Request body' }], returnInfo: { type: 'String', desc: 'Response body' }, example: 'HttpBox.post("https://api.example.com", "{\\"id\\": 1}");' },
@@ -140,6 +144,7 @@ const javaPackages = [
     id: 'dijkstra',
     name: 'Dijkstra',
     description: 'Graph Algorithms',
+    icon: '🕸️',
     functions: [
       { name: 'Dijkstra.dijkstra', signature: 'Result Dijkstra.dijkstra(Map<...> graph, String startNode, String endNode)', description: 'Computes shortest paths using Dijkstra algorithm.', params: [ { name: 'graph', type: 'Map', desc: 'Adjacency map' }, { name: 'startNode', type: 'String', desc: 'Start node' }, { name: 'endNode', type: 'String', desc: '(optional) Target node' } ], returnInfo: { type: 'Result', desc: 'distances and paths.' }, example: 'Result result = Dijkstra.dijkstra(graph, "A", "F");' }
     ]
@@ -167,27 +172,35 @@ const JavaDocs = () => {
 
   useEffect(() => {
     if (!activePackageId) return;
+    let ticking = false;
     const handleScroll = () => {
-      const sections = ['package-info', ...filteredData.map(f => f.name.replace(/\./g, '-'))];
-      let currentActiveId = '';
-      for (const id of sections) {
-        const element = document.getElementById(id);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          if (rect.top <= 200 && rect.bottom >= 200) {
-            currentActiveId = id;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const sections = ['package-info', ...filteredData.map(f => f.name.replace(/\./g, '-'))];
+          let currentActiveId = '';
+          for (const id of sections) {
+            const element = document.getElementById(id);
+            if (element) {
+              const rect = element.getBoundingClientRect();
+              if (rect.top <= 200 && rect.bottom >= 200) {
+                currentActiveId = id;
+                break;
+              }
+            }
           }
-        }
-      }
-      if (currentActiveId && currentActiveId !== activeId) {
-        setActiveId(currentActiveId);
+          if (currentActiveId) {
+            setActiveId(prev => currentActiveId !== prev ? currentActiveId : prev);
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [activeId, filteredData, activePackageId]);
+  }, [filteredData, activePackageId]);
 
   const scrollToHash = (e, id) => {
     e.preventDefault();
@@ -214,8 +227,8 @@ const JavaDocs = () => {
           backgroundImage: 'url(/java_bg.png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          backgroundAttachment: 'fixed',
-          mixBlendMode: 'screen'
+          mixBlendMode: 'screen',
+          willChange: 'transform'
         }} 
       />
 
@@ -320,7 +333,7 @@ const JavaDocs = () => {
               <h2 style={{ marginTop: '80px', border: 'none', color: 'var(--primary)', fontWeight: 700 }}>API Reference Packages</h2>
               <p style={{marginBottom: '40px'}}>Explore the modules provided natively within funcBox for Java. Select a package below to view its functions in detail.</p>
               
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
                 {javaPackages.map((pkg, idx) => (
                   <motion.div
                     key={pkg.id}
@@ -328,25 +341,27 @@ const JavaDocs = () => {
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.1 }}
-                    whileHover={{ scale: 1.03, y: -5 }}
+                    whileHover={{ scale: 1.02, y: -5 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setActivePackageId(pkg.id)}
                     style={{ 
-                      padding: '30px', 
+                      padding: '40px 30px', 
                       cursor: 'pointer',
                       display: 'flex',
                       flexDirection: 'column',
-                      justifyContent: 'center',
-                      gap: '12px',
+                      justifyContent: 'flex-start',
+                      gap: '16px',
                       border: '2px solid transparent',
-                      transition: 'border 0.3s ease'
+                      transition: 'border 0.3s ease',
+                      minHeight: '260px'
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.border = '2px solid var(--accent)'}
                     onMouseLeave={(e) => e.currentTarget.style.border = '2px solid transparent'}
                   >
-                    <h3 style={{ margin: 0, fontSize: '1.4rem', color: 'var(--accent)' }}>{pkg.name}</h3>
-                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: 1.5 }}>{pkg.description}</p>
-                    <div style={{ marginTop: 'auto', paddingTop: '16px', color: 'var(--primary)', fontWeight: 'bold' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '8px' }}>{pkg.icon}</div>
+                    <h3 style={{ margin: 0, fontSize: '1.6rem', color: 'var(--accent)' }}>{pkg.name}</h3>
+                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '1.15rem', lineHeight: 1.6 }}>{pkg.description}</p>
+                    <div style={{ marginTop: 'auto', paddingTop: '20px', color: 'var(--primary)', fontWeight: 'bold', fontSize: '1.1rem' }}>
                       {pkg.functions.length} functions &rarr;
                     </div>
                   </motion.div>

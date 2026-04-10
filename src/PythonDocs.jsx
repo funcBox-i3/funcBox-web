@@ -30,7 +30,7 @@ const CodeBlock = ({ code, language }) => {
   );
 };
 
-const FunctionBlock = ({ name, signature, description, params, returnInfo, example, index, isJava }) => (
+const FunctionBlock = React.memo(({ name, signature, description, params, returnInfo, example, index, isJava }) => (
   <motion.div 
     initial={{ opacity: 0, scale: 0.95, y: 50 }}
     whileInView={{ opacity: 1, scale: 1, y: 0 }}
@@ -82,7 +82,7 @@ const FunctionBlock = ({ name, signature, description, params, returnInfo, examp
       </>
     )}
   </motion.div>
-);
+));
 
 const pyFuncData = [
   {
@@ -188,27 +188,35 @@ const PythonDocs = () => {
   );
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      const sections = ['installation', 'usage', ...filteredData.map(f => f.name.replace(/\\./g, '-'))];
-      let currentActiveId = '';
-      for (const id of sections) {
-        const element = document.getElementById(id);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          if (rect.top <= 200 && rect.bottom >= 200) {
-            currentActiveId = id;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const sections = ['installation', 'usage', ...filteredData.map(f => f.name.replace(/\\./g, '-'))];
+          let currentActiveId = '';
+          for (const id of sections) {
+            const element = document.getElementById(id);
+            if (element) {
+              const rect = element.getBoundingClientRect();
+              if (rect.top <= 200 && rect.bottom >= 200) {
+                currentActiveId = id;
+                break;
+              }
+            }
           }
-        }
-      }
-      if (currentActiveId && currentActiveId !== activeId) {
-        setActiveId(currentActiveId);
+          if (currentActiveId) {
+            setActiveId(prev => prev !== currentActiveId ? currentActiveId : prev);
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [activeId, filteredData]);
+  }, [filteredData]);
 
   const scrollToHash = (e, id) => {
     e.preventDefault();
@@ -235,8 +243,8 @@ const PythonDocs = () => {
           backgroundImage: 'url(/python_bg.png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          backgroundAttachment: 'fixed',
-          mixBlendMode: 'screen'
+          mixBlendMode: 'screen',
+          willChange: 'transform'
         }} 
       />
 
