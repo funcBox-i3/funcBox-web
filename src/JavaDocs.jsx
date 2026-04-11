@@ -42,7 +42,14 @@ const FunctionBlock = React.memo(({ name, signature, description, params, return
     <div className="func-header">
       <h3>{name}</h3>
       <div className="func-badge-container">
-        <span className={`type-badge ${isJava ? 'java-badge' : ''}`}>{signature}</span>
+        <span className={`type-badge ${isJava ? 'java-badge' : ''}`} style={{ whiteSpace: 'pre-wrap', display: 'inline-block', textAlign: 'left' }}>
+          {signature.split('\n').map((line, i, arr) => (
+            <React.Fragment key={i}>
+              {line}
+              {i < arr.length - 1 && <br />}
+            </React.Fragment>
+          ))}
+        </span>
       </div>
     </div>
     <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.975rem' }}>{description}</p>
@@ -287,6 +294,14 @@ String text = FileUtil.loadResource("funcbox_io_demo.txt");
 System.out.println(text);`
       },
       {
+        name: 'FileUtil.write',
+        signature: 'void FileUtil.write(Path path, String content)',
+        description: 'Performs a fast file write with minimal overhead. Creates parent directories automatically.',
+        params: [{ name: 'path', type: 'Path', desc: 'Destination file path' }, { name: 'content', type: 'String', desc: 'Data to write in UTF-8 (null becomes empty string)' }],
+        returnInfo: { type: 'void', desc: 'None' },
+        example: `FileUtil.write(Path.of("logs", "app.txt"), "started\\n");`
+      },
+      {
         name: 'FileUtil.safeWrite',
         signature: 'void FileUtil.safeWrite(Path path, String content)',
         description: 'Atomic write using temp-file + backup + rollback.',
@@ -374,6 +389,16 @@ DigContext d = Dig.of(json);
 DigContext profile = d.scope("user.profile");
 System.out.println(profile.getString("city")); // "NY"
 System.out.println(profile.getString("zip"));  // 10001`
+      },
+      {
+        name: 'DigContext.getAll',
+        signature: 'List<Object> DigContext.getAll(String... paths)',
+        description: 'Resolves multiple paths in one call.',
+        params: [{ name: 'paths', type: 'String...', desc: 'One or more path strings' }],
+        returnInfo: { type: 'List<Object>', desc: 'Ordered list of resolved values (same order as input paths).' },
+        example: `DigContext d = Dig.of("{\\"a\\": 1, \\"b\\": 2, \\"c\\": 3}");
+List<Object> values = d.getAll("a", "c", "b");
+System.out.println(values); // [1, 3, 2]`
       },
       {
         name: 'DigContext.getString',
@@ -731,10 +756,19 @@ const JavaDocs = () => {
             <>
               <section id="installation">
                 <h2>Installation</h2>
-                <p>Integrate FuncBox into your project using Maven:</p>
+                <p>Add FuncBox to your project using your preferred build tool. The dependency lives on <strong>Maven Central</strong>.</p>
+                
+                <h4 style={{ marginTop: '24px', marginBottom: '8px' }}>Maven</h4>
+                <p>Open your <code>pom.xml</code> and add the following inside the <code>&lt;dependencies&gt;</code> block:</p>
                 <CodeBlock code={`<dependency>\n    <groupId>io.github.funcbox-i3</groupId>\n    <artifactId>funcBox</artifactId>\n    <version>1.1.0</version>\n</dependency>`} language="xml" />
-                <p style={{ marginTop: '16px' }}>Or with Gradle:</p>
-                <CodeBlock code={`implementation 'io.github.funcbox-i3:funcBox:1.1.0'`} language="gradle" />
+                
+                <h4 style={{ marginTop: '24px', marginBottom: '8px' }}>Gradle (Groovy)</h4>
+                <p>Open your <code>build.gradle</code> and add the dependency inside the <code>dependencies</code> block:</p>
+                <CodeBlock code={`dependencies {\n    implementation 'io.github.funcbox-i3:funcBox:1.1.0'\n}`} language="gradle" />
+
+                <h4 style={{ marginTop: '24px', marginBottom: '8px' }}>Gradle (Kotlin DSL)</h4>
+                <p>Open your <code>build.gradle.kts</code> and add:</p>
+                <CodeBlock code={`dependencies {\n    implementation("io.github.funcbox-i3:funcBox:1.1.0")\n}`} language="kotlin" />
               </section>
 
               <section id="usage">
