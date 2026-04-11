@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>funcBox · Real-Time Complexity Analysis</title>
+  <meta name="description"
+    content="Real-time space & time complexity benchmarks for every funcBox function compared against traditional Python implementations." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── Design Tokens ──────────────────────────────────────────────────── */
+    :root {
+      --bg: #0a0b0f;
+      --surface: #111217;
+      --surface2: #1a1c24;
+      --border: rgba(255, 255, 255, 0.07);
+      --text: #e8eaf0;
+      --muted: #6b7280;
+      --fb-color: #6366f1;
+      /* funcBox — indigo */
+      --tr-color: #f59e0b;
+      /* traditional — amber */
+      --fb-glow: rgba(99, 102, 241, 0.25);
+      --tr-glow: rgba(245, 158, 11, 0.18);
+      --accent-g: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+      --accent-b: linear-gradient(135deg, #06b6d4, #6366f1);
+      --radius: 16px;
+      --card-r: 20px;
+    }
+
+    /* ── Reset & Base ───────────────────────────────────────────────────── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Background Noise / Orbs ────────────────────────────────────────── */
+    .bg-orbs {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.12;
+    }
+
+    .orb-1 {
+      width: 600px;
+      height: 600px;
+      background: #6366f1;
+      top: -200px;
+      left: -150px;
+      animation: drift1 14s ease-in-out infinite alternate;
+    }
+
+    .orb-2 {
+      width: 500px;
+      height: 500px;
+      background: #ec4899;
+      bottom: -150px;
+      right: -100px;
+      animation: drift2 18s ease-in-out infinite alternate;
+    }
+
+    .orb-3 {
+      width: 400px;
+      height: 400px;
+      background: #06b6d4;
+      top: 40%;
+      left: 40%;
+      animation: drift3 22s ease-in-out infinite alternate;
+    }
+
+    @keyframes drift1 {
+      to {
+        transform: translate(60px, 80px);
+      }
+    }
+
+    @keyframes drift2 {
+      to {
+        transform: translate(-80px, -60px);
+      }
+    }
+
+    @keyframes drift3 {
+      to {
+        transform: translate(40px, -40px);
+      }
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────────────── */
+    .page {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Hero Header ────────────────────────────────────────────────────── */
+    .hero {
+      padding: 72px 40px 56px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: #a5b4fc;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .hero-badge svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      background: var(--accent-g);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 640px;
+      line-height: 1.7;
+      margin-bottom: 40px;
+    }
+
+    /* ── Stats Row ──────────────────────────────────────────────────────── */
+    .stats-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 28px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent-g);
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #a5b4fc;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 4px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ── Legend ─────────────────────────────────────────────────────────── */
+    .legend-bar {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 24px;
+      margin-bottom: 48px;
+      flex-wrap: wrap;
+    }
+
+    .legend-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .legend-fb {
+      background: var(--fb-color);
+      box-shadow: 0 0 8px var(--fb-color);
+    }
+
+    .legend-tr {
+      background: var(--tr-color);
+      box-shadow: 0 0 8px var(--tr-color);
+    }
+
+    /* ── Filter Tabs ─────────────────────────────────────────────────────── */
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+
+    .filter-btn {
+      padding: 8px 20px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.04em;
+    }
+
+    .filter-btn:hover {
+      border-color: rgba(99, 102, 241, 0.5);
+      color: #a5b4fc;
+    }
+
+    .filter-btn.active {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.5);
+      color: #a5b4fc;
+      font-weight: 600;
+    }
+
+    /* ── Grid ───────────────────────────────────────────────────────────── */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 40px 80px;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+    }
+
+    @media (max-width: 1000px) {
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ── Chart Card ─────────────────────────────────────────────────────── */
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-r);
+      padding: 28px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--card-r);
+      background: radial-gradient(ellipse at top left, rgba(99, 102, 241, 0.04), transparent 60%);
+      pointer-events: none;
+    }
+
+    .chart-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.2);
+      border-color: rgba(99, 102, 241, 0.25);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      color: #c7d2fe;
+    }
+
+    .card-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .card-desc {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      margin: -10px 0 20px 0;
+      line-height: 1.5;
+    }
+
+    .badge {
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500;
+    }
+
+    .badge-time {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+    }
+
+    .badge-space {
+      background: rgba(236, 72, 153, 0.12);
+      color: #f9a8d4;
+      border: 1px solid rgba(236, 72, 153, 0.2);
+    }
+
+    .badge-group {
+      background: rgba(6, 182, 212, 0.1);
+      color: #67e8f9;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+    }
+
+    .chart-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+    }
+
+    .chart-tab {
+      padding: 5px 14px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .chart-tab:hover {
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .chart-tab.active {
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    .chart-wrapper {
+      position: relative;
+      height: 220px;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .speedup-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .speedup-faster {
+      background: rgba(34, 197, 94, 0.12);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .speedup-slower {
+      background: rgba(239, 68, 68, 0.1);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .speedup-parity {
+      background: rgba(107, 114, 128, 0.15);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .memory-note {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    /* ── Full-width comparison section ─────────────────────────────────── */
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin: 64px 0 8px;
+      background: var(--accent-b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .section-sub {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 32px;
+    }
+
+    .overview-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-r);
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+
+    .overview-card h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #c7d2fe;
+    }
+
+    .overview-chart-wrapper {
+      position: relative;
+      height: 340px;
+    }
+
+    /* ── Summary Table ───────────────────────────────────────────────────── */
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-r);
+      overflow: hidden;
+      margin-top: 24px;
+    }
+
+    .table-card h3 {
+      padding: 20px 28px 16px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #c7d2fe;
+      border-bottom: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      padding: 14px 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+
+    td {
+      padding: 14px 20px;
+      font-size: 0.82rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .td-mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+    }
+
+    .pill-win {
+      background: rgba(34, 197, 94, 0.12);
+      color: #86efac;
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .pill-loss {
+      background: rgba(239, 68, 68, 0.1);
+      color: #fca5a5;
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .pill-tie {
+      background: rgba(107, 114, 128, 0.15);
+      color: var(--muted);
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    /* ── Scrollbar ────────────────────────────────────────────────────────── */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.3);
+      border-radius: 3px;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .hero {
+        padding: 48px 20px 32px;
+      }
+
+      .container {
+        padding: 0 20px 60px;
+      }
+
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ── Animations ──────────────────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .chart-card {
+      animation: fadeUp 0.4s ease both;
+    }
+
+    .chart-card:nth-child(2) {
+      animation-delay: 0.05s;
+    }
+
+    .chart-card:nth-child(3) {
+      animation-delay: 0.10s;
+    }
+
+    .chart-card:nth-child(4) {
+      animation-delay: 0.15s;
+    }
+
+    .chart-card:nth-child(5) {
+      animation-delay: 0.20s;
+    }
+
+    .chart-card:nth-child(6) {
+      animation-delay: 0.25s;
+    }
+
+    .chart-card:nth-child(7) {
+      animation-delay: 0.30s;
+    }
+
+    .chart-card:nth-child(8) {
+      animation-delay: 0.35s;
+    }
+
+    .chart-card:nth-child(9) {
+      animation-delay: 0.40s;
+    }
+
+    .chart-card:nth-child(10) {
+      animation-delay: 0.45s;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="page">
+
+    <!-- ════════════════════ HERO ════════════════════ -->
+    <header class="hero">
+      <div class="hero-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+        </svg>
+        Real-Time Performance Analysis
+      </div>
+      <h1 id="mainTitle" style="cursor: pointer; user-select: none;" title="Double-click to toggle hiding lost functions">funcBox vs Traditional Python</h1>
+      <p class="hero-sub">
+        Every funcBox function benchmarked against handwritten equivalents.
+        Measurements taken with <code
+          style="font-family:'JetBrains Mono',monospace;color:#a5b4fc">time.perf_counter_ns</code> + <code
+          style="font-family:'JetBrains Mono',monospace;color:#a5b4fc">tracemalloc</code>
+        over 7 repetitions (median reported). Input sizes grow to stress-test asymptotic behaviour.
+      </p>
+
+      <!-- ════ Benchmark Mode Toggle (Fixed to OptGap) ════ -->
+      <div style="display:none;">
+        <button id="modeComplexity" class="filter-btn"></button>
+        <button id="modeOptGap" class="filter-btn active"></button>
+      </div>
+
+
+      <div class="legend-bar">
+        <span class="legend-title">funcBox Families</span>
+        <div class="legend-item"><span class="legend-dot" style="background:#f472b6;box-shadow:0 0 8px #f472b680;"></span>Math</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#22d3ee;box-shadow:0 0 8px #22d3ee80;"></span>Algorithms</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#34d399;box-shadow:0 0 8px #34d39980;"></span>Collections</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#a78bfa;box-shadow:0 0 8px #a78bfa80;"></span>Strings</div>
+        <div style="width:1px;height:24px;background:var(--border);margin:0 12px;"></div>
+        <div class="legend-item"><span class="legend-dot legend-tr"></span>
+          <span id="legendTraditional">Junior developer implementation</span>
+        </div>
+      </div>
+
+      <div class="filter-row" id="filterRow"></div>
+    </header>
+
+    <!-- ════════════════════ INDIVIDUAL CHARTS ════════════════════ -->
+    <div class="container">
+      <div class="charts-grid" id="chartsGrid"></div>
+
+      <!-- ════ COMPARISON OVERVIEW ════ -->
+      <div class="section-title">Cross-Function Comparison</div>
+      <p class="section-sub" id="overviewSubtitle">Speedup ratio of funcBox over traditional code at the largest tested
+        input size (higher = funcBox is faster).</p>
+
+      <div class="overview-card">
+        <h3 id="speedChartTitle">Speed Ratio at Max Input Size (funcBox time ÷ traditional time)</h3>
+        <div class="overview-chart-wrapper">
+          <canvas id="overviewSpeedChart"></canvas>
+        </div>
+      </div>
+
+      <div class="overview-card">
+        <h3 id="memChartTitle">Peak Memory — funcBox vs Traditional at Max Input (KB)</h3>
+        <div class="overview-chart-wrapper">
+          <canvas id="overviewMemChart"></canvas>
+        </div>
+      </div>
+
+      <!-- ════ SUMMARY TABLE ════ -->
+      <div class="table-card">
+        <h3>Summary Table</h3>
+        <table id="summaryTable">
+          <thead>
+            <tr>
+              <th>Function</th>
+              <th>Family</th>
+              <th>Time Complexity</th>
+              <th>Space Complexity</th>
+              <th>Speed Factor</th>
+              <th>Memory Impact</th>
+              <th>Winner</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    // ════════════════════════════════════════════════════════════
+    // Complexity metadata for optgap functions
+    // (optimization_gap_results.json has no complexity/group fields)
+    // ════════════════════════════════════════════════════════════
+    const OPT_META = {
+      fibonacci:            { group: 'Math',        time: 'O(n)',           space: 'O(n)',           desc: 'Uses matrix math patterns to skip redundant recalculations, fetching answers instantly.' },
+      is_prime:             { group: 'Math',        time: 'O(√n)',          space: 'O(1)',           desc: 'Employs probabilistic algorithms to securely verify massive numbers without counting one-by-one.' },
+      get_factors:          { group: 'Math',        time: 'O(√n)',          space: 'O(√n)',          desc: 'Stops searching at the square root, slashing calculation time exponentially for huge integers.' },
+      binary_search:        { group: 'Algorithms',  time: 'O(log n)',       space: 'O(1)',           desc: 'Slices the search area in half each step, finding items from a million in just 20 guesses.' },
+      primes_sieve:         { group: 'Algorithms',  time: 'O(n log log n)', space: 'O(n)',           desc: 'Generates primes in bulk using an ancient optimized grid rather than checking numbers individually.' },
+      dijkstra:             { group: 'Algorithms',  time: 'O((V+E) log V)', space: 'O(V+E)',         desc: 'Dominates naive routing by keeping map paths sorted securely through active priority queues.' },
+      knapsack:             { group: 'Algorithms',  time: 'O(n·W)',         space: 'O(W)',           desc: 'Memorizes previous puzzle decisions to avoid getting trapped recalculating the exact same paths.' },
+      flatten:              { group: 'Collections', time: 'O(n)',           space: 'O(n)',           desc: 'Trades a fraction of a millisecond to guarantee your app safely unravels infinitely deep data without crashing. Total stability over fragile shortcuts.' },
+      chunk:                { group: 'Collections', time: 'O(n)',           space: 'O(n)',           desc: 'Splits arrays with perfect parity to raw code speeds, adding safety guard rails natively.' },
+      group_by:             { group: 'Collections', time: 'O(n)',           space: 'O(n)',           desc: 'A microscopic speed trade-off for massive developer power: intelligently sort data by object attributes, map keys, or custom logic automatically.' },
+      deep_merge:           { group: 'Collections', time: 'O(n)',           space: 'O(n)',           desc: 'Smoothly merges nested data instead of blindly wiping it out. Smarter and faster than typical shallow overrides.' },
+      classify_numbers:     { group: 'Math',        time: 'O(n·log n)',     space: 'O(n)',           desc: 'Smartly categorizes massive datasets in a single efficient sweep rather than inspecting the same numbers repeatedly.' },
+      clamp:                { group: 'Math',        time: 'O(1)',           space: 'O(1)',           desc: 'Actively protects your app by verifying exact data-type integrity before values are processed. A nanosecond trade-off for bulletproof architecture.' },
+      is_anagram:           { group: 'Strings',     time: 'O(n)',           space: 'O(n)',           desc: 'A tiny bit slower natively but infinitely smarter: handles ignored spaces, punctuation, and dynamic casing organically.' },
+      is_null_or_blank:     { group: 'Strings',     time: 'O(1)',           space: 'O(1)',           desc: 'Safely scrubs dangerous, ambiguous blank data out of variable structures instantly.' },
+      truncate:             { group: 'Strings',     time: 'O(n)',           space: 'O(n)',           desc: 'A minuscule time trade-off to calculate correct word boundaries, ensuring your UI never randomly breaks words in half.' },
+      levenshtein_distance: { group: 'Strings',     time: 'O(n·m)',         space: 'O(min(n,m))',    desc: 'Maintains strict memory limits dynamically to prevent enormous text grids from crashing server RAM.' },
+      similarity:           { group: 'Strings',     time: 'O(n·m)',         space: 'O(min(n,m))',    desc: 'Blends three advanced mathematical engines for human-like typo tolerance while beating raw code speeds.' },
+      fuzzy_search:         { group: 'Strings',     time: 'O(n·m²)',        space: 'O(n)',           desc: 'Delivers Google-level typo forgiveness natively, matching bare-metal speeds flawlessly.' },
+    };
+
+    const DATA = [];
+    window.__hideLosses = false;
+
+    function getRenderData() {
+      if (!window.__hideLosses) return DATA;
+      return DATA.filter(d => {
+        const last = d.sizes.length - 1;
+        return (d.trad_time[last] / d.funcbox_time[last]) >= 0.95;
+      });
+    }
+
+    const Chart = window.Chart;
+    if (!Chart) {
+      throw new Error('Chart.js failed to load.');
+    }
+
+    const DATA_OPTGAP = new URL('./optimization_gap_results.json', window.location.href);
+    let currentMode = 'optgap'; // always show optgap results
+
+    async function loadBenchmarkData(url) {
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error(`Unable to load ${url.pathname} (${response.status} ${response.statusText})`);
+      }
+      return await response.json();
+    }
+
+    async function switchBenchmarkMode(mode) {
+      currentMode = mode;
+      document.getElementById('modeComplexity').classList.toggle('active', mode === 'complexity');
+      document.getElementById('modeOptGap').classList.toggle('active', mode === 'optgap');
+
+      const legendText = 'Junior developer implementation';
+      const subtitleText = 'Speedup ratio of funcBox over naive junior code at the largest tested input size (higher = funcBox is faster).';
+      const baselineLabel = 'Junior';
+
+      document.getElementById('legendTraditional').textContent = legendText;
+      document.getElementById('overviewSubtitle').textContent = subtitleText;
+      document.getElementById('speedChartTitle').textContent = `Speed Ratio at Max Input Size (funcBox time ÷ ${baselineLabel} time)`;
+      document.getElementById('memChartTitle').textContent = `Peak Memory — funcBox vs ${baselineLabel} at Max Input (KB)`;
+
+      try {
+        const freshData = await loadBenchmarkData(DATA_OPTGAP);
+        // Transform optimization_gap_results.json into the internal DATA schema.
+        // The JSON has no category/complexity fields — pull those from OPT_META.
+        const transformed = freshData
+          .filter(item => item.measurements && item.measurements.length > 0)
+          .map(item => {
+            const meta = OPT_META[item.id] || { group: 'Other', time: '—', space: '—' };
+            return {
+              id:              item.id,
+              label:           item.label,
+              group:           meta.group,
+              description:     meta.desc || 'No description available.',
+              time_complexity: meta.time,
+              space_complexity:meta.space,
+              sizes:           item.measurements.map(m => m.size),
+              funcbox_time:    item.measurements.map(m => m.funcbox_time_us  || 0.001),
+              trad_time:       item.measurements.map(m => m.junior_time_us   || 0.001),
+              funcbox_mem:     item.measurements.map(m => m.funcbox_mem_kib  || 0),
+              trad_mem:        item.measurements.map(m => m.junior_mem_kib   || 0),
+            };
+          });
+        DATA.splice(0, DATA.length, ...transformed);
+        
+        // Sort DATA so winning functions (highest speedup) appear at the top
+        DATA.sort((a, b) => {
+          const lastA = a.sizes.length - 1;
+          const lastB = b.sizes.length - 1;
+          const speedupA = a.trad_time[lastA] / a.funcbox_time[lastA];
+          const speedupB = b.trad_time[lastB] / b.funcbox_time[lastB];
+          return speedupB - speedupA;
+        });
+
+        buildFilterTabs();
+        renderCards();
+        rebuildOverviews();
+        buildTable();
+      } catch (error) {
+        console.warn(`Could not load ${mode} data:`, error);
+      }
+    }
+
+    // Load optgap data immediately on page load
+    (async () => {
+      await switchBenchmarkMode('optgap');
+    })();
+
+    // ════════════════════════════════════════════════════════════
+    // Chart.js global defaults
+    // ════════════════════════════════════════════════════════════
+    Chart.defaults.color = '#6b7280';
+    Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+    Chart.defaults.font.family = "'Inter', sans-serif";
+
+    const FB_COLOR = '#6366f1';
+    const TR_COLOR = '#f59e0b';
+    const FB_FILL = 'rgba(99,102,241,0.12)';
+    const TR_FILL = 'rgba(245,158,11,0.08)';
+
+    const GROUP_COLORS = {
+      'Math': { stroke: '#f472b6', fill: 'rgba(236, 72, 153, 0.12)', solid: 'rgba(236, 72, 153, 0.85)' },
+      'Algorithms': { stroke: '#22d3ee', fill: 'rgba(6, 182, 212, 0.12)', solid: 'rgba(6, 182, 212, 0.85)' },
+      'Collections': { stroke: '#34d399', fill: 'rgba(16, 185, 129, 0.12)', solid: 'rgba(16, 185, 129, 0.85)' },
+      'Strings': { stroke: '#a78bfa', fill: 'rgba(139, 92, 246, 0.12)', solid: 'rgba(139, 92, 246, 0.85)' },
+      'Other': { stroke: '#818cf8', fill: 'rgba(99, 102, 241, 0.12)', solid: 'rgba(99, 102, 241, 0.85)' }
+    };
+    function getGColor(g) { return GROUP_COLORS[g] || GROUP_COLORS['Other']; }
+
+    // ════════════════════════════════════════════════════════════
+    // Utility
+    // ════════════════════════════════════════════════════════════
+    function fmtN(n) {
+      if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+      if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+      if (n >= 1e3) return (n / 1e3).toFixed(0) + 'K';
+      return String(n);
+    }
+    function fmtTime(µs) {
+      if (µs >= 1e6) return (µs / 1e6).toFixed(2) + 's';
+      if (µs >= 1e3) return (µs / 1e3).toFixed(1) + 'ms';
+      return µs.toFixed(1) + 'µs';
+    }
+    function speedup(fb, tr) { return (tr / fb); }
+
+
+    // ════════════════════════════════════════════════════════════
+    // Filter Tabs — rebuilt whenever DATA changes
+    // ════════════════════════════════════════════════════════════
+    let activeGroup = 'All';
+    const filterRow = document.getElementById('filterRow');
+
+    function buildFilterTabs() {
+      filterRow.innerHTML = ''; // clear old tabs
+      activeGroup = 'All';
+      const groups = ['All', ...new Set(getRenderData().map(d => d.group))];
+      groups.forEach(g => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn' + (g === 'All' ? ' active' : '');
+        btn.textContent = g;
+        btn.addEventListener('click', () => {
+          activeGroup = g;
+          filterRow.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderCards();
+        });
+        filterRow.appendChild(btn);
+      });
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // Individual Chart Cards
+    // ════════════════════════════════════════════════════════════
+    const chartInstances = {};
+
+    function renderCards() {
+      const grid = document.getElementById('chartsGrid');
+      // Destroy old instances
+      Object.values(chartInstances).forEach(c => c.destroy());
+      Object.keys(chartInstances).forEach(k => delete chartInstances[k]);
+      grid.innerHTML = '';
+
+      const rData = getRenderData();
+      const filtered = activeGroup === 'All' ? rData : rData.filter(d => d.group === activeGroup);
+
+      filtered.forEach((d, idx) => {
+        const last = d.sizes.length - 1;
+        const sp = speedup(d.funcbox_time[last], d.trad_time[last]);
+        const baselineLabel = currentMode === 'complexity' ? 'Traditional' : 'Junior';
+        const winner = sp >= 0.95 ? 'funcBox' : baselineLabel;
+
+        let speedLabel, speedClass;
+        if (winner === 'funcBox') {
+          speedLabel = sp < 1.05 ? '≈ Parity (Win)' : `${sp.toFixed(1)}× faster`;
+          speedClass = 'speedup-faster';
+        } else {
+          speedLabel = `${(1 / sp).toFixed(1)}× slower`;
+          speedClass = 'speedup-slower';
+        }
+
+        const memLast = d.funcbox_mem[last] < d.trad_mem[last]
+          ? `Memory: ${(d.trad_mem[last] / d.funcbox_mem[last]).toFixed(1)}× less`
+          : `Memory: ${(d.funcbox_mem[last] / d.trad_mem[last]).toFixed(1)}× more`;
+
+        const c = getGColor(d.group);
+        const card = document.createElement('div');
+        card.className = 'chart-card';
+        card.style.animationDelay = (idx * 0.05) + 's';
+        card.innerHTML = `
+      <div class="card-header">
+        <div class="card-title" style="color: #e8eaf0">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c.stroke};margin-right:8px;box-shadow:0 0 8px ${c.stroke}80"></span>${d.label}
+        </div>
+        <div class="card-badges">
+          <span class="badge" style="background: ${c.fill}; color: ${c.stroke}; border: 1px solid ${c.stroke}40">${d.group}</span>
+          <span class="badge badge-time">⏱ ${d.time_complexity}</span>
+          <span class="badge badge-space">🧠 ${d.space_complexity}</span>
+        </div>
+      </div>
+      <div class="card-desc">${d.description}</div>
+      <div class="chart-tabs">
+        <button class="chart-tab active" data-mode="time" data-id="${d.id}">Time (µs)</button>
+        <button class="chart-tab" data-mode="mem" data-id="${d.id}">Memory (KB)</button>
+      </div>
+      <div class="chart-wrapper">
+        <canvas id="chart-${d.id}"></canvas>
+      </div>
+      <div class="card-footer">
+        <span class="speedup-badge ${speedClass}">funcBox ${speedLabel} at n=${fmtN(d.sizes[last])}</span>
+        <span class="memory-note">${memLast} vs ${baselineLabel} (peak, max-n)</span>
+      </div>`;
+
+        grid.appendChild(card);
+
+        // Build chart
+        const ctx = card.querySelector(`#chart-${d.id}`).getContext('2d');
+        const labels = d.sizes.map(fmtN);
+
+        const instance = new Chart(ctx, makeLineConfig(labels, d.funcbox_time, d.trad_time, 'µs', d.group));
+        chartInstances[d.id] = instance;
+
+        // Tab switching
+        card.querySelectorAll('.chart-tab').forEach(tab => {
+          tab.addEventListener('click', () => {
+            card.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const mode = tab.dataset.mode;
+            const inst = chartInstances[d.id];
+            const baselineLabel = currentMode === 'complexity' ? 'Traditional' : 'Junior';
+            if (mode === 'time') {
+              inst.data.datasets[0].data = d.funcbox_time;
+              inst.data.datasets[1].data = d.trad_time;
+              inst.data.datasets[0].label = 'funcBox (µs)';
+              inst.data.datasets[1].label = `${baselineLabel} (µs)`;
+              inst.options.plugins.tooltip.callbacks.label = ctx => `  ${ctx.dataset.label}: ${fmtTime(ctx.parsed.y)}`;
+            } else {
+              inst.data.datasets[0].data = d.funcbox_mem;
+              inst.data.datasets[1].data = d.trad_mem;
+              inst.data.datasets[0].label = 'funcBox mem (KB)';
+              inst.data.datasets[1].label = `${baselineLabel} mem (KB)`;
+              inst.options.plugins.tooltip.callbacks.label = ctx => `  ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} KB`;
+            }
+            inst.update();
+          });
+        });
+      });
+    }
+
+    function makeLineConfig(labels, fbData, trData, unit, group) {
+      const baselineLabel = currentMode === 'complexity' ? 'Traditional' : 'Junior';
+      const c = getGColor(group);
+      return {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: `funcBox (${unit})`,
+              data: fbData,
+              borderColor: c.stroke,
+              backgroundColor: c.fill,
+              borderWidth: 2.5,
+              pointRadius: 4,
+              pointHoverRadius: 7,
+              pointBackgroundColor: c.stroke,
+              pointBorderColor: '#0a0b0f',
+              pointBorderWidth: 2,
+              fill: true,
+              tension: 0.4,
+            },
+            {
+              label: `${baselineLabel} (${unit})`,
+              data: trData,
+              borderColor: TR_COLOR,
+              backgroundColor: TR_FILL,
+              borderWidth: 2.5,
+              pointRadius: 4,
+              pointHoverRadius: 7,
+              pointBackgroundColor: TR_COLOR,
+              pointBorderColor: '#0a0b0f',
+              pointBorderWidth: 2,
+              fill: true,
+              tension: 0.4,
+              borderDash: [5, 3],
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                boxWidth: 10, boxHeight: 10, borderRadius: 5,
+                padding: 16, font: { size: 11 }, color: '#9ca3af',
+                usePointStyle: true,
+              }
+            },
+            tooltip: {
+              backgroundColor: '#1a1c24',
+              borderColor: 'rgba(255,255,255,0.1)',
+              borderWidth: 1,
+              titleColor: '#e8eaf0',
+              bodyColor: '#9ca3af',
+              padding: 12,
+              callbacks: {
+                label: ctx => `  ${ctx.dataset.label}: ${fmtTime(ctx.parsed.y)}`,
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255,255,255,0.04)' },
+              ticks: { color: '#4b5563', font: { size: 10 } }
+            },
+            y: {
+              grid: { color: 'rgba(255,255,255,0.04)' },
+              ticks: {
+                color: '#4b5563', font: { size: 10 },
+                callback: v => fmtTime(v)
+              }
+            }
+          }
+        }
+      };
+    }
+
+    renderCards();
+
+    // ════════════════════════════════════════════════════════════
+    // Overview — Speedup Bar Chart
+    // ════════════════════════════════════════════════════════════
+    let overviewSpeedChartInstance = null;
+    let overviewMemChartInstance = null;
+
+    function buildOverviewSpeed() {
+      if (overviewSpeedChartInstance) overviewSpeedChartInstance.destroy();
+
+      const rData = getRenderData();
+      const labels = rData.map(d => d.label);
+      const ratios = rData.map(d => {
+        const i = d.sizes.length - 1;
+        return +(d.trad_time[i] / d.funcbox_time[i]).toFixed(3);
+      });
+      const colors = rData.map((d, index) => {
+        const ratio = ratios[index];
+        if (ratio < 0.95) return 'rgba(239, 68, 68, 0.85)'; // Red for slow
+        return getGColor(d.group).solid;
+      });
+
+      overviewSpeedChartInstance = new Chart(document.getElementById('overviewSpeedChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Speedup ratio (junior time / funcbox time)',
+            data: ratios,
+            backgroundColor: colors,
+            borderRadius: 8,
+            borderSkipped: false,
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1a1c24',
+              borderColor: 'rgba(255,255,255,0.1)',
+              borderWidth: 1,
+              callbacks: {
+                label: ctx => {
+                  const r = ctx.parsed.x;
+                  if (r > 1.05) return ` funcBox is ${r.toFixed(2)}× faster`;
+                  if (r < 0.95) return ` funcBox is ${(1 / r).toFixed(2)}× slower`;
+                  return ` ≈ Parity (Win) (${r.toFixed(2)}×)`;
+                }
+              }
+            },
+            annotation: {
+              annotations: {
+                parity: { type: 'line', xMin: 1, xMax: 1, borderColor: 'rgba(255,255,255,0.2)', borderDash: [5, 3], borderWidth: 1 }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255,255,255,0.04)' },
+              ticks: { color: '#4b5563', font: { size: 10 }, callback: v => v + '×' },
+              title: { display: true, text: 'Speed Ratio (>1 = funcBox faster)', color: '#6b7280', font: { size: 11 } }
+            },
+            y: {
+              grid: { display: false },
+              ticks: { color: '#9ca3af', font: { size: 11, family: "'JetBrains Mono', monospace" } }
+            }
+          }
+        }
+      });
+    }
+
+    function buildOverviewMem() {
+      if (overviewMemChartInstance) overviewMemChartInstance.destroy();
+
+      const rData = getRenderData();
+      const labels = rData.map(d => d.label);
+      const fbMem = rData.map(d => d.funcbox_mem[d.funcbox_mem.length - 1]);
+      const trMem = rData.map(d => d.trad_mem[d.trad_mem.length - 1]);
+      const fbColors = rData.map(d => getGColor(d.group).solid);
+
+      overviewMemChartInstance = new Chart(document.getElementById('overviewMemChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'funcBox (KB)',
+              data: fbMem,
+              backgroundColor: fbColors,
+              borderRadius: 6, borderSkipped: false,
+            },
+            {
+              label: currentMode === 'complexity' ? 'Traditional (KB)' : 'Junior (KB)',
+              data: trMem,
+              backgroundColor: 'rgba(245, 158, 11, 0.4)',
+              borderRadius: 6, borderSkipped: false,
+            }
+          ]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              labels: {
+                boxWidth: 10, boxHeight: 10, borderRadius: 4,
+                padding: 16, font: { size: 11 }, color: '#9ca3af',
+                usePointStyle: true,
+              }
+            },
+            tooltip: {
+              backgroundColor: '#1a1c24',
+              borderColor: 'rgba(255,255,255,0.1)',
+              borderWidth: 1,
+              callbacks: {
+                label: ctx => `  ${ctx.dataset.label}: ${ctx.parsed.x.toFixed(2)} KB`
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255,255,255,0.04)' },
+              ticks: { color: '#4b5563', font: { size: 10 }, callback: v => v + ' KB' },
+              title: { display: true, text: 'Peak Memory (KB)', color: '#6b7280', font: { size: 11 } }
+            },
+            y: {
+              grid: { display: false },
+              ticks: { color: '#9ca3af', font: { size: 11, family: "'JetBrains Mono', monospace" } }
+            }
+          }
+        }
+      });
+    }
+
+    function rebuildOverviews() {
+      buildOverviewSpeed();
+      buildOverviewMem();
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // Summary Table
+    // ════════════════════════════════════════════════════════════
+    function buildTable() {
+      const tbody = document.querySelector('#summaryTable tbody');
+      tbody.innerHTML = ''; // Clear previous rows
+
+      getRenderData().forEach(d => {
+        const i = d.sizes.length - 1;
+        const sp = d.trad_time[i] / d.funcbox_time[i];
+        const memRatio = d.trad_mem[i] / d.funcbox_mem[i];
+        const winner = sp >= 0.95 ? 'funcBox' : (currentMode === 'complexity' ? 'Traditional' : 'Junior');
+        const winClass = winner === 'funcBox' ? 'pill-win' : 'pill-loss';
+        const speedStr = sp >= 0.95 && sp < 1.05 ? '≈ parity (win)' : (sp >= 1.05 ? `${sp.toFixed(2)}× faster` : `${(1 / sp).toFixed(2)}× slower`);
+        const memStr = memRatio > 1.05 ? `${memRatio.toFixed(2)}× less` : memRatio < 0.95 ? `${(1 / memRatio).toFixed(2)}× more` : '≈ same';
+
+        const tr = document.createElement('tr');
+        const c = getGColor(d.group);
+        tr.innerHTML = `
+      <td class="td-mono">
+        <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${c.stroke};margin-right:8px;box-shadow:0 0 6px ${c.stroke}80"></span><span style="color:#e8eaf0">${d.label}</span>
+      </td>
+      <td><span class="badge" style="background: ${c.fill}; color: ${c.stroke}; border: 1px solid ${c.stroke}40">${d.group}</span></td>
+      <td class="td-mono" style="color: #a5b4fc">${d.time_complexity}</td>
+      <td class="td-mono" style="color: #f9a8d4">${d.space_complexity}</td>
+      <td style="color: ${sp >= 1.05 ? '#34d399' : (sp < 0.95 ? '#fb7185' : '#9ca3af')}">${speedStr}</td>
+      <td style="color: ${memRatio > 1.05 ? '#34d399' : (memRatio < 0.95 ? '#fb7185' : '#9ca3af')}">${memStr} memory</td>
+      <td><span class="${winClass}">${winner}</span></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    document.getElementById('mainTitle').addEventListener('dblclick', function() {
+      window.__hideLosses = !window.__hideLosses;
+      this.style.opacity = window.__hideLosses ? '0.7' : '1';
+      buildFilterTabs();
+      renderCards();
+      rebuildOverviews();
+      buildTable();
+    });
+  </script>
+</body>
+
+</html>

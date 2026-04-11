@@ -1,0 +1,16 @@
+{
+  "iterations": 50000,
+  "results": [
+    {"name":"isPrime(104729)","funcBoxUs":9258,"tradUs":11373,"ratio":1.2284},
+    {"name":"primes(2, 10000)","funcBoxUs":795082,"tradUs":1065660,"ratio":1.3403},
+    {"name":"fibonacci(80)","funcBoxUs":886,"tradUs":964,"ratio":1.0876},
+    {"name":"getFactors(720720)","funcBoxUs":558759,"tradUs":57326743,"ratio":102.5965},
+    {"name":"isPalindrome(sentence)","funcBoxUs":6781,"tradUs":98006,"ratio":14.4527},
+    {"name":"isAnagram(listen, silent)","funcBoxUs":33547,"tradUs":40225,"ratio":1.1991},
+    {"name":"capitalizeEachWord(9 words)","funcBoxUs":115427,"tradUs":226711,"ratio":1.9641},
+    {"name":"levenshtein(algorithm,...)","funcBoxUs":7778,"tradUs":10996,"ratio":1.4136},
+    {"name":"fuzzyMatchScore","funcBoxUs":10629,"tradUs":11012,"ratio":1.0361},
+    {"name":"dijkstra(50 nodes, all paths)","funcBoxUs":1433441,"tradUs":1648821,"ratio":1.1503},
+    {"name":"dijkstra(50 nodes, src→dst)","funcBoxUs":673624,"tradUs":1313361,"ratio":1.9497}
+  ]
+}
