@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FuncBox Benchmark Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --border:   #30363d;
+      --text:     #c9d1d9;
+      --text-dim: #8b949e;
+      --accent-fb: #58a6ff;
+      --accent-tr: #f78166;
+      --win:      #3fb950;
+      --gold:     #e3b341;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+    }
+
+    /* ── header ────────────────────────────────────── */
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    header h1 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--accent-fb) 0%, #a5d6ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p {
+      margin-top: .5rem;
+      color: var(--text-dim);
+      font-size: .95rem;
+    }
+    #meta-badge {
+      display: inline-flex;
+      gap: .75rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .badge {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      padding: .3rem .85rem;
+      font-size: .8rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-dim);
+    }
+    .badge span { color: var(--accent-fb); font-weight: 600; }
+
+    /* ── grid ──────────────────────────────────────── */
+    .grid {
+      max-width: 1300px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    /* ── card ──────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: border-color .2s;
+    }
+    .card:hover { border-color: var(--accent-fb); }
+    .card-title {
+      font-size: .8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-dim);
+      margin-bottom: 1rem;
+    }
+    .chart-wrap {
+      position: relative;
+      height: min(420px, 62vw);
+    }
+
+    /* ── summary cards ─────────────────────────────── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      transition: border-color .2s, transform .2s;
+    }
+    .stat-card:hover { border-color: var(--accent-fb); transform: translateY(-2px); }
+    .stat-label {
+      font-size: .78rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: .4rem;
+    }
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .stat-sub {
+      font-size: .78rem;
+      color: var(--text-dim);
+      margin-top: .2rem;
+    }
+    .stat-value.green  { color: var(--win); }
+    .stat-value.blue   { color: var(--accent-fb); }
+    .stat-value.orange { color: #ffa657; }
+    .stat-value.gold   { color: var(--gold); }
+
+    /* ── table ─────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .88rem;
+    }
+    thead th {
+      text-align: left;
+      padding: .65rem 1rem;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
+    }
+    tbody td {
+      padding: .7rem 1rem;
+      border-bottom: 1px solid rgba(48,54,61,.5);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    tbody tr:hover { background: rgba(88,166,255,.05); }
+    tbody tr:last-child td { border-bottom: none; }
+    .winner-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      padding: .2rem .55rem;
+      border-radius: 6px;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+    .win-fb   { background: rgba(88,166,255,.15); color: var(--accent-fb); }
+    .win-trad { background: rgba(247,129,102,.15); color: var(--accent-tr); }
+
+    /* ── ratio bar chart in table ──────────────────── */
+    .ratio-bar-wrap { width: 120px; }
+    .ratio-bg {
+      background: var(--border);
+      height: 6px;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+    .ratio-fill {
+      height: 100%;
+      border-radius: 9999px;
+      transition: width .6s ease;
+    }
+    .ratio-val {
+      font-size: .82rem;
+      margin-bottom: 3px;
+    }
+
+    /* ── legend ────────────────────────────────────── */
+    .legend {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .84rem;
+      color: var(--text-dim);
+    }
+    .legend-dot {
+      width: 12px; height: 12px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    /* ── footer ────────────────────────────────────── */
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: var(--text-dim);
+      font-size: .8rem;
+    }
+    footer a { color: var(--accent-fb); text-decoration: none; }
+
+    /* ── loader ────────────────────────────────────── */
+    #loader {
+      text-align: center;
+      padding: 6rem 0;
+      color: var(--text-dim);
+      font-size: 1.1rem;
+    }
+    #main { display: none; }
+
+    @media(min-width: 900px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+      .full { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>⚡ FuncBox Benchmark Dashboard</h1>
+  <p>FuncBox library vs hand-rolled traditional implementations — fair concurrent race</p>
+  <div id="meta-badge">
+    <span class="badge">iterations: <span id="iter-count">—</span></span>
+    <span class="badge">start: <span>CountDownLatch (simultaneous)</span></span>
+    <span class="badge">jvm warmup: <span>≥3 s / 10 000 iters</span></span>
+    <span class="badge">unit: <span>µs total</span></span>
+  </div>
+</header>
+
+<div id="loader">⏳ Loading results…</div>
+
+<div id="main">
+  <div class="grid" style="margin-bottom:1.5rem;">
+    <div class="full summary-grid" id="stat-cards"></div>
+  </div>
+
+  <div class="grid">
+    <!-- bar chart -->
+    <div class="card full">
+      <div class="card-title">Total Time per Benchmark (µs) — lower is better</div>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#58a6ff"></div> FuncBox 1.1.0
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#f78166"></div> Traditional (hand-rolled)
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="barChart"></canvas>
+      </div>
+    </div>
+
+    <!-- speedup chart -->
+    <div class="card full">
+      <div class="card-title">Speedup Ratio (FuncBox ÷ Traditional) — bars &gt;1 = FuncBox wins</div>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#3fb950"></div> FuncBox faster (ratio &gt; 1)
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#f78166"></div> Traditional faster (ratio &lt; 1)
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="ratioChart"></canvas>
+      </div>
+    </div>
+
+    <!-- radar -->
+    <div class="card">
+      <div class="card-title">Radar — Normalized Performance Profile</div>
+      <div class="chart-wrap" style="height:320px">
+        <canvas id="radarChart"></canvas>
+      </div>
+    </div>
+
+    <!-- line (scaled iteration simulation) -->
+    <div class="card">
+      <div class="card-title">Projected Cost Growth (simulated N × single-op avg)</div>
+      <div class="chart-wrap" style="height:320px">
+        <canvas id="lineChart"></canvas>
+      </div>
+    </div>
+
+    <!-- table -->
+    <div class="card full">
+      <div class="card-title">Detailed Results</div>
+      <div class="table-wrap">
+        <table id="result-table">
+          <thead>
+            <tr>
+              <th>Benchmark</th>
+              <th>FuncBox (µs)</th>
+              <th>Traditional (µs)</th>
+              <th>Speedup</th>
+              <th>Winner</th>
+              <th>Ratio bar</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>FuncBox v1.1.0 · <a href="https://github.com/funcBox-i3/funcBox-java" target="_blank">GitHub</a> · Benchmark generated by BenchmarkRunner.java</p>
+</footer>
+
+<script>
+// ── chart defaults ──────────────────────────────────────────
+Chart.defaults.color = '#8b949e';
+Chart.defaults.borderColor = '#30363d';
+Chart.defaults.font.family = "'Inter', sans-serif";
+
+const FB_COL  = 'rgba(88, 166, 255, 0.85)';
+const FB_BRD  = 'rgba(88, 166, 255, 1)';
+const TR_COL  = 'rgba(247, 129, 102, 0.85)';
+const TR_BRD  = 'rgba(247, 129, 102, 1)';
+const WIN_COL = 'rgba(63, 185, 80, 0.85)';
+
+function fmt(n) { return n.toLocaleString('en-US'); }
+
+async function loadData() {
+  try {
+    const res = await fetch('benchmark_results.json');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  } catch(e) {
+    // If fetch fails (e.g., file:// protocol), try inline demo
+    console.warn('Could not fetch JSON, using demo data.', e);
+    return null;
+  }
+}
+
+function buildCharts(data) {
+  const { iterations, results } = data;
+  const labels   = results.map(r => r.name);
+  const fbVals   = results.map(r => r.funcBoxUs);
+  const trVals   = results.map(r => r.tradUs);
+  const ratios   = results.map(r => parseFloat(r.ratio.toFixed(4)));
+
+  // ── stat cards ──────────────────────────────────────────
+  document.getElementById('iter-count').textContent = fmt(iterations);
+  const winsForFB  = results.filter(r => r.ratio >= 1).length;
+  const bestRatio  = Math.max(...ratios);
+  const bestName   = results[ratios.indexOf(bestRatio)].name;
+  const avgRatio   = (ratios.reduce((a,b)=>a+b,0)/ratios.length).toFixed(2);
+
+  const cards = [
+    { label:'FuncBox Wins',     value: winsForFB + ' / ' + results.length, cls:'green',  sub:'benchmarks faster' },
+    { label:'Peak Speedup',     value: bestRatio.toFixed(2)+'×',           cls:'blue',   sub: bestName },
+    { label:'Avg Speedup',      value: avgRatio+'×',                       cls:'orange', sub:'across all benchmarks' },
+    { label:'Iterations',       value: fmt(iterations),                    cls:'gold',   sub:'measured calls each' },
+  ];
+  const sc = document.getElementById('stat-cards');
+  cards.forEach(c => {
+    sc.innerHTML += `
+      <div class="stat-card">
+        <div class="stat-label">${c.label}</div>
+        <div class="stat-value ${c.cls}">${c.value}</div>
+        <div class="stat-sub">${c.sub}</div>
+      </div>`;
+  });
+
+  // ── bar chart ────────────────────────────────────────────
+  new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label:'FuncBox 1.1.0',            data: fbVals, backgroundColor: FB_COL,  borderColor: FB_BRD,  borderWidth: 1.5, borderRadius: 4 },
+        { label:'Traditional (hand-rolled)', data: trVals, backgroundColor: TR_COL,  borderColor: TR_BRD,  borderWidth: 1.5, borderRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: { legend:{ position:'top' }, tooltip:{ callbacks:{
+        label: ctx => ` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)} µs`
+      }}},
+      scales: {
+        x: { ticks:{ maxRotation:35, minRotation:25 } },
+        y: { title:{ display:true, text:'Total time (µs)' }, beginAtZero:true }
+      }
+    }
+  });
+
+  // ── ratio chart ──────────────────────────────────────────
+  const ratioBG  = ratios.map(r => r >= 1 ? WIN_COL : TR_COL);
+  const ratioBrd = ratios.map(r => r >= 1 ? 'rgba(63,185,80,1)' : TR_BRD);
+  new Chart(document.getElementById('ratioChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Speedup ratio (FuncBox ÷ Traditional)',
+        data: ratios,
+        backgroundColor: ratioBG,
+        borderColor: ratioBrd,
+        borderWidth: 1.5,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{ display:false }, tooltip:{ callbacks:{
+        label: ctx => ` ${ctx.parsed.y.toFixed(3)}× ${ctx.parsed.y>=1?'(FuncBox faster)':'(Trad faster)'}`
+      }}},
+      scales: {
+        x: { ticks:{ maxRotation:35, minRotation:25 } },
+        y: {
+          title: { display:true, text:'Speedup ratio' },
+          beginAtZero: true,
+          grid: { color: ctx => ctx.tick.value === 1 ? '#58a6ff88' : '#30363d' }
+        }
+      }
+    }
+  });
+
+  // ── radar ────────────────────────────────────────────────
+  const maxVal = Math.max(...fbVals, ...trVals);
+  const norm = arr => arr.map(v => parseFloat((100 - (v/maxVal)*100).toFixed(2)));
+  new Chart(document.getElementById('radarChart'), {
+    type: 'radar',
+    data: {
+      labels,
+      datasets: [
+        { label:'FuncBox',      data: norm(fbVals), borderColor: FB_BRD,  backgroundColor:'rgba(88,166,255,.12)', pointBackgroundColor: FB_BRD  },
+        { label:'Traditional',  data: norm(trVals), borderColor: TR_BRD,  backgroundColor:'rgba(247,129,102,.12)', pointBackgroundColor: TR_BRD },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{ position:'top' } },
+      scales: { r: {
+        suggestedMin: 0, suggestedMax: 100,
+        ticks: { backdropColor:'transparent', stepSize:20 },
+        pointLabels: { font:{ size:10 } }
+      }}
+    }
+  });
+
+  // ── line (cost projection) ───────────────────────────────
+  const nsPerIter = results.map(r=>({
+    fb: (r.funcBoxUs * 1000) / iterations,
+    tr: (r.tradUs    * 1000) / iterations,
+  }));
+  const avgFbNs = nsPerIter.reduce((s,x)=>s+x.fb,0)/nsPerIter.length;
+  const avgTrNs = nsPerIter.reduce((s,x)=>s+x.tr,0)/nsPerIter.length;
+  const scale   = [1e3,1e4,1e5,5e5,1e6,5e6,1e7];
+  const scaleMs = n => parseFloat((n * avgFbNs / 1e6).toFixed(3));
+  const scaleMs2 = n => parseFloat((n * avgTrNs / 1e6).toFixed(3));
+  new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+      labels: scale.map(n => fmt(n)),
+      datasets: [
+        { label:'FuncBox', data: scale.map(scaleMs),  borderColor: FB_BRD, backgroundColor:'rgba(88,166,255,.08)', fill:true, tension:.35, pointRadius:4 },
+        { label:'Traditional', data: scale.map(scaleMs2), borderColor: TR_BRD, backgroundColor:'rgba(247,129,102,.08)', fill:true, tension:.35, pointRadius:4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: { legend:{ position:'top' }, tooltip:{ callbacks:{
+        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y} ms`
+      }}},
+      scales: {
+        x: { title:{ display:true, text:'Number of calls' } },
+        y: { title:{ display:true, text:'Estimated total (ms)' }, beginAtZero:true }
+      }
+    }
+  });
+
+  // ── table ────────────────────────────────────────────────
+  const tbody  = document.getElementById('table-body');
+  const maxRat = Math.max(...ratios, 1);
+  results.forEach(r => {
+    const isFBWin  = r.ratio >= 1;
+    const winClass = isFBWin ? 'win-fb' : 'win-trad';
+    const winLabel = isFBWin ? '🔵 FuncBox' : '🔴 Traditional';
+    const barW     = Math.min((r.ratio / maxRat) * 100, 100).toFixed(1);
+    const barCol   = isFBWin ? '#3fb950' : '#f78166';
+    tbody.innerHTML += `
+      <tr>
+        <td style="color:#c9d1d9;font-weight:500">${r.name}</td>
+        <td style="color:#58a6ff">${fmt(r.funcBoxUs)}</td>
+        <td style="color:#f78166">${fmt(r.tradUs)}</td>
+        <td>${r.ratio.toFixed(3)}×</td>
+        <td><span class="winner-tag ${winClass}">${winLabel}</span></td>
+        <td class="ratio-bar-wrap">
+          <div class="ratio-val" style="color:${barCol}">${r.ratio.toFixed(2)}×</div>
+          <div class="ratio-bg"><div class="ratio-fill" style="width:${barW}%;background:${barCol}"></div></div>
+        </td>
+      </tr>`;
+  });
+}
+
+(async () => {
+  const data = await loadData();
+  if (!data) {
+    document.getElementById('loader').innerHTML =
+      '❌ Could not load <code>benchmark_results.json</code>.<br>' +
+      'Run the Java benchmark first: <code>mvn -f benchmark-pom.xml package &amp;&amp; java -jar target/funcbox-benchmark-1.0.0.jar</code>';
+    return;
+  }
+  document.getElementById('loader').style.display = 'none';
+  document.getElementById('main').style.display   = 'block';
+  buildCharts(data);
+})();
+</script>
+</body>
+</html>
